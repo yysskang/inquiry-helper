@@ -21,7 +21,7 @@ Icon
 *.iml
 # Thumbnails
 ._*
-util/secret_manager.py
+
 # Files that might appear in the root of a volume
 .DocumentRevisions-V100
 .fseventsd
