@@ -4,13 +4,18 @@ import boto3
 from typing import Optional
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
+from django.db.models import When, Case, IntegerField
+from django.forms import BooleanField
 from django.utils.timezone import now
 from rest_framework import viewsets, status, mixins
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+
+from api.pagination import StandardPagination
 from api.v1.inquiry.serializers import InquiryManagementSerializer, InquirySerializer
 from apps.contract.models import Contract
 from apps.inquiry.models import InquiryManagement, Inquiry
@@ -24,8 +29,8 @@ class InquiryManagementViewSet(mixins.CreateModelMixin,
                                viewsets.GenericViewSet):
     serializer_class = InquiryManagementSerializer
     queryset = InquiryManagement.objects.all()
-    permission_classes = []
-    authentication_classes = []
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication]
 
     def get_queryset(self):
         contract_id = self.request.session.get('contract_id', '1')
@@ -69,18 +74,25 @@ class InquiryManagementViewSet(mixins.CreateModelMixin,
 
 class InquiryViewSet(viewsets.GenericViewSet,
                      mixins.CreateModelMixin,
-                     mixins.ListModelMixin,
-                     mixins.RetrieveModelMixin):
+                     mixins.ListModelMixin):
     queryset = Inquiry.objects.all()
     serializer_class = InquirySerializer
     permission_classes = []
     authentication_classes = []
+    renderer_classes = [JSONRenderer]
 
     def get_queryset(self):
         contract_id = self.request.session.get('contract_id')
         if not contract_id:
             return Inquiry.objects.none()
-        return Inquiry.objects.filter(contract=contract_id)
+        return Inquiry.objects.filter(contract=contract_id).order_by(
+            Case(
+                When(status=False, then=0),
+                default=1,
+                output_field=IntegerField()
+            ),
+            '-created_at'
+        )
 
     def create(self, request, *args, **kwargs):
         api_key = request.META.get('HTTP_APIKEY', "")
@@ -134,26 +146,20 @@ class InquiryViewSet(viewsets.GenericViewSet,
             'user_email': "iiomko@naver.com",
         }
 
-        sqs = boto3.client(
-            'sqs',
-            region_name=settings.AWS_S3_REGION_NAME,
-            aws_access_key_id=settings.SQS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.SQS_SECRET_ACCESS_KEY
-        )
-        queue_url = settings.QUEUE_URL
-        sqs.send_message(
-            QueueUrl=queue_url,
-            MessageBody=json.dumps(message),
-        )
+        # sqs = boto3.client(
+        #     'sqs',
+        #     region_name=settings.AWS_S3_REGION_NAME,
+        #     aws_access_key_id=settings.SQS_ACCESS_KEY_ID,
+        #     aws_secret_access_key=settings.SQS_SECRET_ACCESS_KEY
+        # )
+        # queue_url = settings.QUEUE_URL
+        # sqs.send_message(
+        #     QueueUrl=queue_url,
+        #     MessageBody=json.dumps(message),
+        # )
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        if queryset.exists():
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(serializer.data)
-        return Response([], status=status.HTTP_200_OK)
-
-    def retrieve(self, request, *args, **kwargs):
-        obj = get_object_or_404(self.get_queryset(), pk=kwargs['pk'])
-        serializer = self.get_serializer(obj)
-        return Response(serializer.data)
+        self.permission_classes = [IsAuthenticated]
+        self.authentication_classes = [SessionAuthentication]
+        self.pagination_class = StandardPagination
+        return super().list(request, *args, **kwargs)

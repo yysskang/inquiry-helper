@@ -12,7 +12,13 @@ class InquiryList(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
-
+        contract_id = self.request.session.get("contract_id")
+        if contract_id:
+            inquiry_counts = Inquiry.objects.with_counts(contract_id)
+            context['inquiry_count'] = inquiry_counts.get("total_count")
+            context['status_false_count'] = inquiry_counts.get('status_false_count')
+            context['contract'] = (Contract.objects.filter(id=contract_id).
+                                   values('company_name', 'expiration_date').first())
         return context
 
 
@@ -22,6 +28,11 @@ class InquiryDetail(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data()
+        inquiry_id = kwargs.get('pk')
+        contract_id = self.request.session.get("contract_id")
+        Inquiry.objects.with_contract(contract_id, inquiry_id).update(status=True)
+        inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
+        context['inquiry'] = inquiry
 
         return context
 

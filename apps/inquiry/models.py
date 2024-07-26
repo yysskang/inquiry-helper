@@ -1,7 +1,7 @@
 from django.db import models
 from apps.base.base_model import Model
 from apps.contract.models import Contract
-from apps.inquiry.manager import InquiryManagementQuerySet
+from apps.inquiry.manager import InquiryManagementQuerySet, InquiryQuerySet
 from util.aes256 import AES256
 
 
@@ -20,6 +20,9 @@ class Inquiry(Model):
     param1 = models.CharField(verbose_name="파라미터1", max_length=255, null=True, blank=True)
     param2 = models.CharField(verbose_name="파라미터2", max_length=255, null=True, blank=True)
     param3 = models.CharField(verbose_name="파라미터3", max_length=255, null=True, blank=True)
+    status = models.BooleanField(default=False)
+
+    objects = InquiryQuerySet.as_manager()
 
     def save(self, *args, **kwargs):
         aes256 = AES256()
