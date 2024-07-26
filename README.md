@@ -1,2 +1,0 @@
-# inquiry-helper
-inquiry-helper

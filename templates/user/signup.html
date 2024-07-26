@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+{% load static %}
+<head>
+<title>CS-Helper</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no, address=no, email=no">
+<link href="{% static 'css/common.css' %}" type="text/css" rel="stylesheet">
+<link href="{% static 'css/admin.css' %}" type="text/css" rel="stylesheet">
+<script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+<script src="{% static 'js/nice-select/jquery.nice-select.js' %}"></script>
+<script src="{% static 'js/action.js' %}"></script>
+</head>
+<body>
+<div id="wrap">
+<!--	<header id="header" class="admin_header">-->
+<!--        <div class="mob-head">-->
+<!--            <h1 class="logo"><a href="./"><img src="{% static 'image/common/logo_vertical.png' %}" alt="폼당폼당" class="w4em"></a></h1>-->
+<!--            <p class="bt-group"><a href="write.html">폼 확인하기 <i class="ico"></i></a></p>-->
+<!--            <nav class="gnb">-->
+<!--                <ul>-->
+<!--                    <li><a href="index.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path style="fill:currentColor" fill-rule="evenodd" d="M3.47 7.03c.15.15.34.22.53.22s.38-.07.53-.22l3-3c.29-.29.29-.77 0-1.06a.754.754 0 0 0-1.06 0L4 5.44l-.47-.47a.754.754 0 0 0-1.06 0c-.29.29-.29.77 0 1.06l1 1ZM21 6.25H11c-.41 0-.75-.34-.75-.75s.34-.75.75-.75h10c.41 0 .75.34.75.75s-.34.75-.75.75Zm-10 7h10c.41 0 .75-.34.75-.75s-.34-.75-.75-.75H11c-.41 0-.75.34-.75.75s.34.75.75.75Zm0 7h10c.41 0 .75-.34.75-.75s-.34-.75-.75-.75H11c-.41 0-.75.34-.75.75s.34.75.75.75Zm-7-6c-.19 0-.38-.07-.53-.22l-1-1a.754.754 0 0 1 0-1.06c.29-.29.77-.29 1.06 0l.47.47 2.47-2.47c.29-.29.77-.29 1.06 0 .29.29.29.77 0 1.06l-3 3c-.15.15-.34.22-.53.22Zm-.53 6.78c.15.15.34.22.53.22s.38-.07.53-.22l3-3c.29-.29.29-.77 0-1.06a.754.754 0 0 0-1.06 0L4 19.44l-.47-.47a.754.754 0 0 0-1.06 0c-.29.29-.29.77 0 1.06l1 1Z" clip-rule="evenodd"/></svg> 문의 확인</a></li>-->
+<!--                    <li><a href="group_write.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path style="fill:currentColor" fill-rule="evenodd" d="M5.54 19.52c-.61 0-1.18-.21-1.59-.6-.52-.49-.77-1.23-.68-2.03l.37-3.24c.07-.61.44-1.42.87-1.86l6.837-7.237a.707.707 0 0 1 .025-.026L12.72 3.1c2.05-2.17 4.19-2.23 6.36-.18s2.23 4.19.18 6.36l-8.21 8.69c-.42.45-1.2.87-1.81.97l-3.22.55-.177.013c-.102.009-.2.017-.303.017Zm.06-6.71 5.918-6.272a6.86 6.86 0 0 0 4.353 4.125L9.95 16.93c-.2.21-.68.47-.97.52L5.76 18c-.33.05-.6-.01-.78-.18-.18-.17-.26-.44-.22-.77l.37-3.24c.04-.29.27-.79.47-1Zm12.56-4.57-1.105 1.17a5.372 5.372 0 0 1-4.342-4.137L13.81 4.11c.68-.72 1.35-1.2 2.12-1.2.62 0 1.31.32 2.11 1.09 1.81 1.7 1.36 2.92.12 4.24ZM3 22.75h18c.41 0 .75-.34.75-.75s-.34-.75-.75-.75H3c-.41 0-.75.34-.75.75s.34.75.75.75Z" clip-rule="evenodd"/></svg> 문의 관리</a></li>-->
+<!--                    <li><a href="group_list.html"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"><path style="fill:currentColor" fill-rule="evenodd" d="M19.25 17.353a2.75 2.75 0 0 0-2 2.647c0 1.52 1.23 2.75 2.75 2.75s2.75-1.23 2.75-2.75a2.75 2.75 0 0 0-2-2.647V14c0-2.42-1.33-3.75-3.75-3.75h-4.25V6.647a2.75 2.75 0 0 0 2-2.647c0-1.52-1.23-2.75-2.75-2.75S9.25 2.48 9.25 4c0 1.26.845 2.32 2 2.647v3.603H7c-2.42 0-3.75 1.33-3.75 3.75v3.353a2.75 2.75 0 0 0-2 2.647c0 1.52 1.23 2.75 2.75 2.75S6.75 21.52 6.75 20a2.75 2.75 0 0 0-2-2.647V14c0-1.58.67-2.25 2.25-2.25h4.25v5.603a2.75 2.75 0 0 0-2 2.647c0 1.52 1.23 2.75 2.75 2.75s2.75-1.23 2.75-2.75a2.75 2.75 0 0 0-2-2.647V11.75H17c1.58 0 2.25.67 2.25 2.25v3.353ZM4 18.75a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5Zm16 0a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5ZM13.25 4a1.25 1.25 0 1 1-2.5 0 1.25 1.25 0 0 1 2.5 0ZM12 18.75a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5Z" clip-rule="evenodd"/></svg> 계약 정보</a></li>-->
+<!--                </ul>-->
+<!--            </nav>-->
+<!--			<a onclick="logout()" class="bt-logout"><i class="ico i-logout"></i> Logout</a>-->
+<!--        </div>-->
+<!--        <button type="button" class="bt-menu"><span class="skip">메뉴</span></button>-->
+<!--    </header>-->
+	<div id="container">
+		<h2 class="sub-tit">사용자 생성</h2>
+		<div id="contents" class="group-wrap">
+            <div class="group-write">
+                <h4>가입 프로필</h4>
+                    <fieldset>
+                        <legend>가입하기</legend>
+                        <div class="forms-write-wrap">
+                            <div class="frm-area">
+                                <div class="inp-group">
+                                    <label for="username"><em>필수</em> 아이디</label><input type="text" name="" class="it" id="username">
+                                </div>
+                                <p>사용할 계정을 입력하세요.</p>
+                            </div>
+                            <div class="frm-area">
+                                <div class="inp-group">
+                                    <label for="password"><em>필수</em> 비밀번호</label><input type="password" name="" class="it" id="password">
+                                </div>
+                                <p>비밀번호를 입력하세요.</p>
+                            </div>
+<!--                            <div class="frm-area">-->
+<!--                                <div class="inp-group">-->
+<!--                                    <label for="type-sel"><em>필수</em> 활동테마</label>-->
+<!--                                    <select name="" id="type-sel" class="layer-sel">-->
+<!--					                    <option value="">테마를 선택해주세요.</option>-->
+<!--                                        <option value="쪽지시험">쪽지시험</option>-->
+<!--                                        <option value="스터디">스터디</option>-->
+<!--                                        <option value="오답노트">오답노트</option>-->
+<!--                                        <option value="과제/퀴즈">과제/퀴즈</option>-->
+<!--                                        <option value="학교/학원">학교/학원</option>-->
+<!--                                        <option value="기타">기타</option>-->
+<!--                                    </select>-->
+<!--                                </div>-->
+<!--                                <p>활동테마를 선택하세요.</p>-->
+<!--                            </div>-->
+                            <div class="frm-area">
+                                <div class="inp-group">
+                                    <label for="username"><em>필수</em> 이메일</label><input type="email" name="" class="it" id="email">
+                                </div>
+                                <p>이메일 작성 시 문의 내용을 바로 받아볼 수 있어요.</p>
+                            </div>
+                            <div class="frm-area">
+                                <div class="inp-group">
+                                    <label for="personal_info_consent"><em>필수</em> 개인정보 제공</label>
+                                    <select name="" id="personal_info_consent" class="layer-sel1">
+					                    <option value="1">동의</option>
+                                        <option value="0">비동의</option>
+                                    </select>
+                                </div>
+                                <p>동의 후 가입이 가능해요.</p>
+                            </div>
+                            <div class="frm-area">
+                                <div class="inp-group">
+                                    <label for="marketing_consent"><em>필수</em> 마케팅 및 SMS</label>
+                                    <select name="" id="marketing_consent" class="layer-sel2">
+					                    <option value="1">동의</option>
+                                        <option value="0">비동의</option>
+                                    </select>
+                                </div>
+                                <p>이벤트 정보를 제공 받을 수 있어요.</p>
+                            </div>
+                            <div class="frm-area">
+                                <div class="inp-group">
+                                    <label for="subscription_consent"><em>필수</em> 구독 및 뉴스레터</label>
+                                    <select name="" id="subscription_consent" class="layer-sel3">
+					                    <option value="1">동의</option>
+                                        <option value="0">비동의</option>
+                                    </select>
+                                </div>
+                                <p>이메일을 통해 정보를 받을 수 있어요.</p>
+                            </div>
+
+
+                        </div>
+                        <div class="bt-group">
+                            <button id="create-btn" onclick="userCreate()" class="st-fill"><span>가입하기</span> <i class="ico"></i></button>
+                        </div>
+                    </fieldset>
+            </div>
+		</div>
+	</div>
+</div>
+<script>
+$(document).ready(function() {
+    $('.layer-sel1').niceSelect();
+    $('.layer-sel2').niceSelect();
+    $('.layer-sel3').niceSelect();
+});
+
+
+const userCreate = () => {
+  const username = $("#username").val();
+  const password = $("#password").val();
+  const email = $("#email").val();
+  const subscription_consent = $("#subscription_consent").val() === "1" ? true : false;
+  const marketing_consent = $("#marketing_consent").val() === "1" ? true : false
+  const personal_info_consent = $("#personal_info_consent").val() === "1" ? true : false
+
+  if([null, undefined, '', 'null', 'None'].includes(username)) {
+      alert("사용할 계정을 입력해주세요");
+      return false
+  }
+
+  if([null, undefined, '', 'null', 'None'].includes(password)) {
+      alert("패스워드를 입력해주세요");
+      return false
+  }
+
+  if([null, undefined, '', 'null', 'None'].includes(email)) {
+      alert("이메일을 입력해주세요");
+      return false
+  }
+
+  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailPattern.test(email)) {
+      alert("이메일 형식이 아닙니다.");
+      return false;
+  }
+
+  if(!personal_info_consent) {
+      alert("개인정보 제공 동의가 필요합니다.");
+      return false;
+  }
+
+  doubleSubmit("#create-btn");
+
+  $.ajax({
+    type: 'POST',
+    url: '/api/v1/signup/',
+    contentType: 'application/json',
+    data: JSON.stringify({
+        'username': username,
+        'password': password,
+        'email': email,
+        'subscription_consent': subscription_consent,
+        'marketing_consent': marketing_consent,
+        'personal_info_consent': personal_info_consent
+    }),
+    success: (response) => {
+          alert("회원가입이 완료되었습니다.");
+          location.replace("/login/");
+    },
+    error: (xhr) => {
+      doubleSubmit("#create-btn");
+      const errorResponse = JSON.parse(xhr.responseText);
+      alert(errorResponse.error);
+    }
+  });
+};
+
+</script>
+</body>
+</html>

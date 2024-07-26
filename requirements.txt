@@ -1,0 +1,15 @@
+Django>=4.0,<5.0
+djangorestframework>=3.12,<4.0
+pymysql
+requests>=2.25,<3.0
+gunicorn>=20.0,<21.0
+gevent
+django-environ>=0.8,<1.0
+whitenoise>=5.2,<6.0
+django-cors-headers>=3.7,<4.0
+python-dotenv==0.19.1
+djangorestframework==3.14.0
+drf_yasg==1.21.7
+pytest
+cryptography
+boto3

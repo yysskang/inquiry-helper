@@ -1,0 +1,70 @@
+<html lang="ko">
+{% load static %}
+<head>
+<title>CS-Helper</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no, address=no, email=no">
+<link href="{% static 'css/common.css' %}" type="text/css" rel="stylesheet">
+<link href="{% static 'css/admin.css' %}" type="text/css" rel="stylesheet">
+<script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
+<script src="{% static 'js/action.js' %}"></script>
+</head>
+<body style="overflow: hidden;">
+<div id="login">
+	<div class="login-frm">
+		<div class="contents">
+			<fieldset>
+				<legend>로그인</legend>
+				<h2 class="logo"><img src="{% static 'image/common/logo_vertical.png' %}" alt="폼당폼당" class="w6em"></h2>
+				<div class="member-login">
+					<div class="frm-area">
+						<label for="username" class="skip">ID</label><input type="text" name="" value="" id="username" class="it" placeholder="Username">
+						<label for="password" class="skip">Password</label><input type="password" name="" value="" id="password" class="it" placeholder="Password">
+					</div>
+					<button type="submit" id="signup" class="st-fill" onclick="Login()">입장하기</button>
+					<button type="submit" onclick="location.href='/signup/'" id="signin" class="st-fill" style="background-color: #77859f; !important;">가입하기</button>
+				</div>
+			</fieldset>
+		</div>
+	</div>
+</div>
+<script>
+const Login = () => {
+    const username = $("#username").val();
+    const password = $("#password").val();
+
+	if([null, undefined, '', 'null', 'None'].includes(username)) {
+		 alert("로그인 계정을 입력해주세요");
+		 return false
+	}
+
+	if([null, undefined, '', 'null', 'None'].includes(password)) {
+	     alert("패스워드를 입력해주세요");
+		 return false
+	}
+
+	doubleSubmit("#signup");
+    $.ajax({
+        url: '/api/v1/login/',
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify({
+            "username": username,
+            "password": password
+        }),
+        success: (data) => {
+             alert(data.message);
+			 location.replace("/contract/")
+        },
+		error: (xhr) => {
+			  doubleSubmit("#signup");
+			  const errorResponse = JSON.parse(xhr.responseText);
+			  alert(errorResponse.error);
+		}
+    });
+};
+
+</script>
+
+</body></html>
