@@ -39,7 +39,8 @@ jobs:
         IMAGE_TAG: ${{ github.sha }}
       run: |
         # Build a docker container and
-        # push it to ECR so that it can
+        # push it to ECR so that it can 
         docker build --build-arg ENVIRONMENT=${{ secrets.ARG_ENVIRONMENT}} --build-arg ACCESS_KEY=${{ secrets.ARG_AWS_ACCESS_KEY}} --build-arg SECRET_KEY=${{ secrets.ARG_AWS_SECRET_KEY}} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        # test
