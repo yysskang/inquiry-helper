@@ -11,6 +11,26 @@
 <script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
 <script src="{% static 'js/nice-select/jquery.nice-select.js' %}"></script>
 <script src="{% static 'js/action.js' %}"></script>
+<style>
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        background-color: #f1f1f1;
+        border: 1px solid #ccc;
+        padding: 5px 10px;
+        margin: 5px;
+        border-radius: 3px;
+    }
+    .tag .close {
+        margin-left: 10px;
+        color: red;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .tag .close:hover {
+        color: darkred;
+    }
+</style>
 </head>
 <body>
 <div id="wrap">
@@ -33,29 +53,28 @@
         </div>
         <button type="button" class="bt-menu"><span class="skip">메뉴</span></button>
     </header>
-	<div id="container">
+    <div id="container">
         <h2 class="sub-tit">문의하기 설정</h2>
-		<div id="settings" class="group-wrap">
+        <div id="settings" class="group-wrap">
         </div>
-	</div>
+    </div>
 </div>
 <script>
 $(document).ready(function() {
-	inquirySettings()
+    inquirySettings();
 });
 
-function inquirySettings() {
-
-  $.ajax({
-      type: 'GET',
-      url: '/api/v1/inquiry_management/',
-      headers: {
-           'X-CSRFToken': getCookie('csrftoken')
-      },
-      success: function (response) {
-          let html = ""
-          if(response.length < 1) {
-              html += `
+const inquirySettings = () => {
+    $.ajax({
+        type: 'GET',
+        url: '/api/v1/inquiry_management/',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        success: function(response) {
+            let html = "";
+            if (response.length < 1) {
+                html += `
                     <div class="not-result">
                         <i class="ico"></i>
                         <p>아직 설정된 폼이 없습니다.<br>설정 하기를 시작해보세요!</p>
@@ -63,12 +82,45 @@ function inquirySettings() {
                             <li><a onclick="inquiryCreate()" style="cursor: pointer" class="st-ico"><i class="ico i-group"></i> <span>시작하기</span></a></li>
                         </ul>
                     </div>
-              `
-          }else {
-              const data = response[0]
-              html += `
-                <div class="group-write">
-                    <h4>설정하기</h4>
+                `;
+            } else {
+                const data = response[0];
+                let type_html = ""
+                for(let i=0; i<data.inquiry_types.length; i++) {
+                    type_html += `
+                        <div class="tag">
+                            <span data-id="${data.inquiry_types[i].id}">${data.inquiry_types[i].name}</span>
+                            <span class="close">X</span>
+                        </div>
+                    `
+                }
+
+                html += `
+
+                    <input type="hidden" id="myInquiryIdx" value="${data.id}">
+                    <div class="group-write" style="margin-bottom: 50px;">
+                        <h4>문의 타입 설정하기</h4>
+                        <fieldset>
+                            <legend>설정하기</legend>
+                            <div class="forms-write-wrap">
+                                <div class="frm-area">
+                                    <div class="inp-group">
+                                        <label for="type"><em>필수</em> 문의 타입</label>
+                                        <input type="text" class="it" id="type" placeholder="입력 후 엔터를 눌러주세요.">
+                                    </div>
+                                    <p>사용할 문의 타입을 입력 후 엔터를 눌러주세요.</p>
+                                </div>
+                                <div id="tag-container">
+                                    ${type_html}
+                                </div>
+                                <div class="bt-group">
+                                    <button id="create-btn" onclick="inquiryTypesUpdate()" class="st-fill"><span>적용하기</span> <i class="ico"></i></button>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="group-write">
+                        <h4>문의 폼 설정하기</h4>
                         <fieldset>
                             <legend>설정하기</legend>
                             <div class="forms-write-wrap">
@@ -81,30 +133,42 @@ function inquirySettings() {
                                 ${createFormArea('date_time', '날짜 수집', '활성화', '비활성화', data.date_time)}
                                 <div class="frm-area">
                                     <div class="inp-group">
-                                        <label for="time_placeholder"> 날짜 수집 목적</label><input type="text" name="" class="it" id="time_placeholder" placeholder="라벨을 적어주세요. ex) 예약 날짜">
+                                        <label for="time_placeholder"> 날짜 수집 목적</label><input type="text" name="" value="${data.time_placeholder == null ? '' : data.time_placeholder}"
+                                        class="it" id="time_placeholder" placeholder="라벨을 적어주세요. ex) 예약 날짜">
                                     </div>
-                                    <p></p>
+                                </div>
+                                <div class="bt-group">
+                                    <button id="create-btn" onclick="inquiryUpdate()" class="st-fill"><span>적용하기</span> <i class="ico"></i></button>
                                 </div>
                             </div>
-                            <div class="bt-group">
-                                <button id="create-btn" onclick="inquiryUpdate()" class="st-fill"><span>가입하기</span> <i class="ico"></i></button>
-                            </div>
                         </fieldset>
-                </div>
-              `
-          }
-          $("#settings").append(html);
-          $('.layer-sel').niceSelect();
-      },
-      error: function (error) {
-	  console.error('AJAX 요청 실패:', error);
-      }
-  });
+                    </div>
+                `;
+            }
+            $("#settings").html(html);
+            $('.layer-sel').niceSelect();
+
+            document.getElementById('type').addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addTag(this.value);
+                    this.value = '';
+                }
+            });
+
+            document.getElementById('tag-container').addEventListener('click', function(event) {
+                if (event.target.classList.contains('close')) {
+                    event.target.parentElement.remove();
+                }
+            });
+        },
+        error: function(error) {
+            console.error('AJAX 요청 실패:', error);
+        }
+    });
 }
 
-
 const createFormArea = (id, label, option1, option2, value) => {
-    console.log(value)
     return `
         <div class="frm-area">
             <div class="inp-group">
@@ -119,12 +183,50 @@ const createFormArea = (id, label, option1, option2, value) => {
 };
 
 const inquiryUpdate = () => {
-    alert("test")
-}
+
+    const name = $("#name").val() === "1" ? true : false;
+    const phone = $("#phone").val() === "1" ? true : false;
+    const email = $("#email").val() === "1" ? true : false;
+    const attachment = $("#attachment").val() === "1" ? true : false;
+    const link = $("#link").val() === "1" ? true : false;
+    const date_time = $("#date_time").val() === "1" ? true : false;
+    const time_placeholder = $("#time_placeholder").val();
+    const address = $("#address").val() === "1" ? true : false;
+    const idx = $("#myInquiryIdx").val();
+
+    doubleSubmit("#create-btn");
+    $.ajax({
+        type: 'PUT',
+        url: `/api/v1/inquiry_management/${idx}/`,
+        contentType: 'application/json',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        data: JSON.stringify({
+            "name": name,
+            "phone": phone,
+            "email": email,
+            "attachment": attachment,
+            "link": link,
+            "date_time": date_time,
+            "time_placeholder": time_placeholder,
+            "address": address
+        }),
+        success: (response) => {
+            alert("설정이 완료되었습니다.");
+            doubleSubmit("#create-btn");
+        },
+        error: (xhr) => {
+            doubleSubmit("#create-btn");
+            const errorResponse = JSON.parse(xhr.responseText);
+            alert(errorResponse.error);
+        }
+    });
+};
 
 const inquiryCreate = () => {
-      doubleSubmit("#create-btn");
-      $.ajax({
+    doubleSubmit("#create-btn");
+    $.ajax({
         type: 'POST',
         url: '/api/v1/inquiry_management/',
         contentType: 'application/json',
@@ -132,16 +234,86 @@ const inquiryCreate = () => {
             'X-CSRFToken': getCookie('csrftoken')
         },
         success: (response) => {
-              alert("설정이 완료되었습니다.");
-              location.reload();
+            alert("설정이 완료되었습니다.");
+            location.reload();
         },
         error: (xhr) => {
-          doubleSubmit("#create-btn");
-          const errorResponse = JSON.parse(xhr.responseText);
-          alert(errorResponse.error);
+            doubleSubmit("#create-btn");
+            const errorResponse = JSON.parse(xhr.responseText);
+            alert(errorResponse.error);
         }
-      });
+    });
+};
+
+function addTag(value) {
+    if (value.trim() === '') return;
+
+    const tagContainer = document.getElementById('tag-container');
+    const tag = document.createElement('div');
+    tag.className = 'tag';
+    tag.innerHTML = `<span>${value}</span>`;
+
+    const closeBtn = document.createElement('span');
+    closeBtn.className = 'close';
+    closeBtn.textContent = 'X';
+
+    closeBtn.onclick = function() {
+        tagContainer.removeChild(tag);
+    };
+
+    tag.appendChild(closeBtn);
+    tagContainer.appendChild(tag);
 }
+
+const inquiryTypesUpdate = () => {
+    const tags = document.querySelectorAll('#tag-container .tag');
+    if (tags.length === 0) {
+        alert('등록된 문의 타입이 없습니다.');
+        return;
+    }
+    const inquiryTypes = [];
+    tags.forEach(tag => {
+        const span = tag.querySelector('span');
+        const dataId = span.getAttribute('data-id'); // DB에서 가져온 요소
+        const name = span.textContent.trim();
+
+        if (dataId) {
+            inquiryTypes.push({
+                id: parseInt(dataId, 10),
+                name: name
+            });
+        } else {
+            inquiryTypes.push({
+                name: name
+            });
+        }
+    });
+
+    const result = {
+        inquiry_types: inquiryTypes
+    };
+    const idx = $("#myInquiryIdx").val();
+    doubleSubmit("#create-btn");
+    $.ajax({
+        type: 'PUT',
+        url: `/api/v1/inquiry_management/${idx}/update_inquiry_types/`,
+        contentType: 'application/json',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        data: JSON.stringify(result),
+        success: (response) => {
+            alert("설정이 완료되었습니다.");
+            doubleSubmit("#create-btn");
+        },
+        error: (xhr) => {
+            doubleSubmit("#create-btn");
+            const errorResponse = JSON.parse(xhr.responseText);
+            alert(errorResponse.error);
+        }
+    });
+}
+
 </script>
 </body>
 </html>
