@@ -43,19 +43,22 @@ class InquiryService(TemplateView):
         api_key = kwargs.get('key')
 
         contract = get_object_or_404(Contract, api_key=api_key)
-        inquiry_management = get_object_or_404(InquiryManagementModel, contract=contract)
+        inquiry_management = InquiryManagementModel.objects.filter(contract=contract).first()
 
-        inquiry_data = {
-            'name': inquiry_management.name,
-            'phone': inquiry_management.phone,
-            'email': inquiry_management.email,
-            'attachment': inquiry_management.attachment,
-            'link': inquiry_management.link,
-            'date_time': inquiry_management.date_time,
-            'time_placeholder': inquiry_management.time_placeholder,
-            'address': inquiry_management.address,
-            'inquiry_types': [{'id': it.id, 'name': it.name} for it in inquiry_management.inquiry_types.all()]
-        }
-
-        context['inquiry'] = inquiry_data
+        if inquiry_management:
+            inquiry_data = {
+                'name': inquiry_management.name,
+                'phone': inquiry_management.phone,
+                'email': inquiry_management.email,
+                'attachment': inquiry_management.attachment,
+                'link': inquiry_management.link,
+                'date_time': inquiry_management.date_time,
+                'time_placeholder': inquiry_management.time_placeholder,
+                'address': inquiry_management.address,
+                'inquiry_types': [{'id': it.id, 'name': it.name} for it in inquiry_management.inquiry_types.all()]
+            }
+            context['inquiry'] = inquiry_data
+            context['company_name'] = contract.company_name
+        else:
+            context['message'] = '[문의 관리] 메뉴를 통해 설정이 필요합니다.'
         return context

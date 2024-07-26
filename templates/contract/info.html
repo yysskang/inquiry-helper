@@ -18,7 +18,7 @@
         <div class="mob-head">
             <h1 class="logo"><a href="./"><img src="{% static 'image/common/logo_vertical.png' %}" alt="폼당폼당" class="w4em"></a></h1>
             {% if request.session.api_key %}
-                <p class="bt-group"><a href="/inquiry/service/{{ request.session.api_key }}/"> 폼 확인하기 <i class="ico"></i></a></p>
+                <p class="bt-group"><a href="/inquiry/service/{{ request.session.api_key }}/" target='_blank'> 폼 확인하기 <i class="ico"></i></a></p>
             {% else %}
                 <p class="bt-group"><a href="/contract/write/"> 폼 계약하기 <i class="ico"></i></a></p>
             {% endif %}

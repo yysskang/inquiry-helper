@@ -15,10 +15,115 @@
 <body>
 <div id="wrap">
 	<div id="container">
+		<div class="group-write">
+			<h4>{{ company_name }} 문의하기</h4>
+				<fieldset>
+					<legend>문의하기</legend>
+					<div class="forms-write-wrap">
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="title"><em>필수</em> 제목</label>
+								<input type="text" value="{{ contract.company_name }}" class="it" id="title">
+							</div>
+						</div>
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="type"><em>필수</em> 카테고리</label>
+								<select name="" id="type" class="layer-sel">
+									<option value="">카테고리를 선택해주세요.</option>
+									{% for data in inquiry.inquiry_types %}
+										<option value="{{data.id}}">{{data.name}}</option>
+                                    {% endfor %}
+								</select>
+							</div>
+						</div>
 
+						{% if inquiry.name %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="name"><em>필수</em> 이름</label>
+								<input type="text" value="" name="" class="it" id="name">
+							</div>
+						</div>
+                        {% endif %}
+
+                        {% if inquiry.phone %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="phone"><em>필수</em> 연락처</label>
+								<input type="text" value="" name="" class="it" id="phone">
+							</div>
+						</div>
+                        {% endif %}
+
+                        {% if inquiry.email %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="email"><em>필수</em> 이메일</label>
+								<input type="text" value="" name="" class="it" id="email">
+							</div>
+						</div>
+                        {% endif %}
+
+                        {% if inquiry.address %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="address"> 주소</label>
+								<input type="text" value="" name="" class="it" id="address">
+							</div>
+						</div>
+                        {% endif %}
+
+                        {% if inquiry.date_time %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="date_time"><em>필수</em> {{ inquiry.time_placeholder|default:"날짜" }}</label>
+								<input type="datetime-local" value="" name="" class="it" id="date_time">
+							</div>
+						</div>
+                        {% endif %}
+
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="content"><em>필수</em> 문의내용</label>
+                                <textarea type="text" name="" class="it" id="content" rows="10"></textarea>
+							</div>
+						</div>
+
+                        {% if inquiry.link %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="link"> 첨부 링크</label>
+								<input type="text" value="" name="" class="it" id="link">
+							</div>
+						</div>
+                        {% endif %}
+
+                        {% if inquiry.attachment %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="attachment"> 첨부파일</label>
+								<input type="file" value="" name="" class="it" id="attachment">
+							</div>
+						</div>
+                        {% endif %}
+					</div>
+					<div class="bt-group">
+						<button id="create-btn" onclick="inquiryCreate()" class="st-fill"><span>문의하기</span> <i class="ico"></i></button>
+					</div>
+				</fieldset>
+		</div>
 	</div>
 </div>
 <script>
+$(document).ready(function() {
+	const msg = '{{ message }}'
+  	if(![null, undefined, '', 'null', 'None'].includes(msg)) {
+	     alert(msg);
+		 window.close()
+	}
+    $('.layer-sel').niceSelect();
+});
 </script>
 </body>
 </html>
