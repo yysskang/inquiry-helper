@@ -1,4 +1,4 @@
-name: Django CI - Build and Push Docker Image
+name: Django CI - Build, Push Docker Image -> Update ECS Service
 
 on:
   push:
@@ -8,6 +8,9 @@ on:
 
 env:
   ECR_REPOSITORY: ${{ secrets.ECR }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
 
 permissions:
   id-token: write
@@ -15,7 +18,7 @@ permissions:
 
 jobs:
   build-and-push:
-    name: Build and Push Docker Image
+    name: Build, Push Docker Image, and Update ECS Service
     runs-on: ubuntu-latest
 
     steps:
@@ -38,9 +41,20 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        # Build a docker container and
-        # push it to ECR so that it can 
         docker build --build-arg ENVIRONMENT=${{ secrets.ARG_ENVIRONMENT}} --build-arg ACCESS_KEY=${{ secrets.ARG_AWS_ACCESS_KEY}} --build-arg SECRET_KEY=${{ secrets.ARG_AWS_SECRET_KEY}} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-        # test
+
+    - name: Update ECS service for new version
+      run: |
+        aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} > task_def.json
+        jq --arg IMAGE "${{ steps.build-image.outputs.image }}" '.taskDefinition.containerDefinitions[0].image = $IMAGE' task_def.json > updated_task_def.json
+        jq 'del(.taskDefinition.taskDefinitionArn, .taskDefinition.revision, .taskDefinition.status, .taskDefinition.requiresAttributes, .taskDefinition.compatibilities, .taskDefinition.registeredAt, .taskDefinition.registeredBy)' updated_task_def.json > clean_task_def.json
+        aws ecs register-task-definition --cli-input-json file://clean_task_def.json
+        REVISION=$(aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query 'taskDefinition.revision' --output text)
+        aws ecs update-service --cluster ${{ env.ECS_CLUSTER }} --service ${{ env.ECS_SERVICE }} --force-new-deployment --task-definition ${{ env.ECS_TASK_DEFINITION }}:$REVISION
+        aws ecs wait services-stable --cluster ${{ env.ECS_CLUSTER }} --service ${{ env.ECS_SERVICE }}
+
+    - name: Cleanup
+      run: |
+        rm -f task_def.json updated_task_def.json clean_task_def.json
