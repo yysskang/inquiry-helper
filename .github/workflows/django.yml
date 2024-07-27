@@ -49,36 +49,36 @@ jobs:
     - name: Update ecs service
       run: |
         # task definition file save 
-        aws ecs describe-task-definition --include TAGS --task-definition $ECS_TASK_DEFINITION > $ECS_TASK_DEFINITION.json
+        aws ecs describe-task-definition --include TAGS --task-definition ${{ env.ECS_TASK_DEFINITION }} > ${{ env.ECS_TASK_DEFINITION }}.json
         # 새로운 이미지로 image tag 변경
-        cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/$ECR_REPOSITORY:${{ github.sha }}"' $ECS_TASK_DEFINITION.json)" > $ECS_TASK_DEFINITION.json
+        cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"' ${{ env.ECS_TASK_DEFINITION }}.json)" > ${{ env.ECS_TASK_DEFINITION }}.json
         # # tag 저장
-        TAGS=$(jq '.tags' $ECS_TASK_DEFINITION.json)
+        TAGS=$(jq '.tags' ${{ env.ECS_TASK_DEFINITION }}.json)
         # # 필요없는 내용 삭제 
-        cat <<< $(jq '.taskDefinition' $ECS_TASK_DEFINITION.json) > $ECS_TASK_DEFINITION.json
-        cat <<< $(jq 'del(.requiresAttributes)' $ECS_TASK_DEFINITION.json) > $ECS_TASK_DEFINITION.json
-        cat <<< $(jq 'del(.compatibilities)' $ECS_TASK_DEFINITION.json) > $ECS_TASK_DEFINITION.json
-        sed -i '/taskDefinitionArn/d' $ECS_TASK_DEFINITION.json
-        sed -i '/revision/d' $ECS_TASK_DEFINITION.json
-        sed -i '/status/d' $ECS_TASK_DEFINITION.json
-        sed -i '/registeredAt/d' $ECS_TASK_DEFINITION.json
-        sed -i '/registeredBy/d' $ECS_TASK_DEFINITION.json
-        sed -i 's/"memory": "2048",/"memory": "2048"/g' $ECS_TASK_DEFINITION.json
+        cat <<< $(jq '.taskDefinition' ${{ env.ECS_TASK_DEFINITION }}.json) > ${{ env.ECS_TASK_DEFINITION }}.json
+        cat <<< $(jq 'del(.requiresAttributes)' ${{ env.ECS_TASK_DEFINITION }}.json) > ${{ env.ECS_TASK_DEFINITION }}.json
+        cat <<< $(jq 'del(.compatibilities)' ${{ env.ECS_TASK_DEFINITION }}.json) > ${{ env.ECS_TASK_DEFINITION }}.json
+        sed -i '/taskDefinitionArn/d' ${{ env.ECS_TASK_DEFINITION }}.json
+        sed -i '/revision/d' ${{ env.ECS_TASK_DEFINITION }}.json
+        sed -i '/status/d' ${{ env.ECS_TASK_DEFINITION }}.json
+        sed -i '/registeredAt/d' ${{ env.ECS_TASK_DEFINITION }}.json
+        sed -i '/registeredBy/d' ${{ env.ECS_TASK_DEFINITION }}.json
+        sed -i 's/"memory": "2048",/"memory": "2048"/g' ${{ env.ECS_TASK_DEFINITION }}.json
 
         #tag 내용 저장 
-        cat <<< $(jq '.tags = []' $ECS_TASK_DEFINITION.json) >  $ECS_TASK_DEFINITION.json
+        cat <<< $(jq '.tags = []' ${{ env.ECS_TASK_DEFINITION }}.json) >  ${{ env.ECS_TASK_DEFINITION }}.json
         KEY=( $(echo $TAGS | jq '.[] | .key'))
         VALUE=( $(echo $TAGS | jq '.[] | .value'))
         NEW_KEY=( $(echo ${KEY[@]//\"/}))
         NEW_VALUE=( $(echo ${VALUE[@]//\"/}))
         #tag 내용 추가
         COUNT=$(echo ${#NEW_KEY[@]})
-        for (( c=0; c<$COUNT; c++)); do cat <<< $(jq --arg sk "${NEW_KEY[c]}" --arg v "${NEW_VALUE[c]}" '.tags += [{"key":($sk), "value": $v}]' $ECS_TASK_DEFINITION.json) > $ECS_TASK_DEFINITION.json  ;done
+        for (( c=0; c<$COUNT; c++)); do cat <<< $(jq --arg sk "${NEW_KEY[c]}" --arg v "${NEW_VALUE[c]}" '.tags += [{"key":($sk), "value": $v}]' ${{ env.ECS_TASK_DEFINITION }}.json) > ${{ env.ECS_TASK_DEFINITION }}.json  ;done
         #새로운 task 등록
-        aws ecs register-task-definition --cli-input-json file://$ECS_TASK_DEFINITION.json
+        aws ecs register-task-definition --cli-input-json file://${{ env.ECS_TASK_DEFINITION }}.json
         # 새로운 revision 번호 저장
-        REVISION=$(aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --query 'taskDefinition.revision')
+        REVISION=$(aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query 'taskDefinition.revision')
         # ECS 서비스 업데이트
-        aws ecs update-service --service $ECS_SERVICE --cluster $ECS_CLUSTER --force-new-deployment --task-definition $ECS_TASK_DEFINITION:$REVISION
+        aws ecs update-service --service ${{ env.ECS_SERVICE }} --cluster ${{ env.ECS_CLUSTER }} --force-new-deployment --task-definition ${{ env.ECS_TASK_DEFINITION }}:$REVISION
         # 서비스가 업데이트 될때까지 가다림
-        aws ecs wait services-stable --service $ECS_SERVICE --cluster $ECS_CLUSTER
+        aws ecs wait services-stable --service ${{ env.ECS_SERVICE }} --cluster ${{ env.ECS_CLUSTER }}
