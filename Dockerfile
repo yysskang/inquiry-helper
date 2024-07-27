@@ -20,4 +20,4 @@ RUN pip3 install --upgrade pip && \
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "-w", "3", "-k", "gevent", "config.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "-w", "3", "-k", "gevent", "config.wsgi:application"]
