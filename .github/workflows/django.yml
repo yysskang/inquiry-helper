@@ -14,7 +14,7 @@ env:
 
 permissions:
   id-token: write
-  contents: read   
+  contents: read
 
 jobs:
   build-and-push:
@@ -55,13 +55,11 @@ jobs:
         ECR_REPOSITORY: ${{ secrets.ECR }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-
         aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION > task-def.json
         jq --arg IMAGE "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG" \
            '.taskDefinition.containerDefinitions[0].image = $IMAGE' task-def.json > new-task-def.json
         jq 'del(.taskDefinition.status, .taskDefinition.taskDefinitionArn, .taskDefinition.requiresAttributes, .taskDefinition.compatibilities, .taskDefinition.revision, .taskDefinition.registeredAt, .taskDefinition.registeredBy)' \
            new-task-def.json > stripped-task-def.json
-
         NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json file://stripped-task-def.json | jq -r '.taskDefinition.taskDefinitionArn')
 
         aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $NEW_TASK_DEFINITION_ARN
