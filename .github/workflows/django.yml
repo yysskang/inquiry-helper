@@ -8,6 +8,10 @@ on:
 
 env:
   ECR_REPOSITORY: ${{ secrets.ECR }}
+  ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  
 
 permissions:
   id-token: write
@@ -47,7 +51,7 @@ jobs:
         # task definition file save 
         aws ecs describe-task-definition --include TAGS --task-definition $ECS_TASK_DEFINITION > $ECS_TASK_DEFINITION.json
         # 새로운 이미지로 image tag 변경
-        cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/test-ecr:${{ github.sha }}"' $ECS_TASK_DEFINITION.json)" > $ECS_TASK_DEFINITION.json
+        cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/$ECR_REPOSITORY:${{ github.sha }}"' $ECS_TASK_DEFINITION.json)" > $ECS_TASK_DEFINITION.json
         # # tag 저장
         TAGS=$(jq '.tags' $ECS_TASK_DEFINITION.json)
         # # 필요없는 내용 삭제 
@@ -75,6 +79,6 @@ jobs:
         # 새로운 revision 번호 저장
         REVISION=$(aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --query 'taskDefinition.revision')
         # ECS 서비스 업데이트
-        aws ecs update-service --service nursingxr-app --cluster nursingxr-app --force-new-deployment --task-definition $ECS_TASK_DEFINITION:$REVISION
+        aws ecs update-service --service $ECS_SERVICE --cluster $ECS_CLUSTER --force-new-deployment --task-definition $ECS_TASK_DEFINITION:$REVISION
         # 서비스가 업데이트 될때까지 가다림
-        aws ecs wait services-stable --service nursingxr-app --cluster nursingxr-app
+        aws ecs wait services-stable --service $ECS_SERVICE --cluster $ECS_CLUSTER
