@@ -11,7 +11,6 @@ env:
   ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
   ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
   ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
-  
 
 permissions:
   id-token: write
@@ -42,43 +41,29 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build --build-arg ENVIRONMENT=${{ secrets.ARG_ENVIRONMENT}} --build-arg ACCESS_KEY=${{ secrets.ARG_AWS_ACCESS_KEY}} --build-arg SECRET_KEY=${{ secrets.ARG_AWS_SECRET_KEY}} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build --build-arg ENVIRONMENT=${{ secrets.ARG_ENVIRONMENT }} --build-arg ACCESS_KEY=${{ secrets.ARG_AWS_ACCESS_KEY }} --build-arg SECRET_KEY=${{ secrets.ARG_AWS_SECRET_KEY }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    - name: Update ecs service
+    - name: Update ECS service
+      env:
+        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+        ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+        ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
+        ECR_REPOSITORY: ${{ secrets.ECR }}
+        IMAGE_TAG: ${{ github.sha }}
       run: |
-        # task definition file save 
-        aws ecs describe-task-definition --include TAGS --task-definition ${{ env.ECS_TASK_DEFINITION }} > ${{ env.ECS_TASK_DEFINITION }}.json
-        # 새로운 이미지로 image tag 변경
-        cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-northeast-2.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ github.sha }}"' ${{ env.ECS_TASK_DEFINITION }}.json)" > ${{ env.ECS_TASK_DEFINITION }}.json
-        # # tag 저장
-        TAGS=$(jq '.tags' ${{ env.ECS_TASK_DEFINITION }}.json)
-        # # 필요없는 내용 삭제 
-        cat <<< $(jq '.taskDefinition' ${{ env.ECS_TASK_DEFINITION }}.json) > ${{ env.ECS_TASK_DEFINITION }}.json
-        cat <<< $(jq 'del(.requiresAttributes)' ${{ env.ECS_TASK_DEFINITION }}.json) > ${{ env.ECS_TASK_DEFINITION }}.json
-        cat <<< $(jq 'del(.compatibilities)' ${{ env.ECS_TASK_DEFINITION }}.json) > ${{ env.ECS_TASK_DEFINITION }}.json
-        sed -i '/taskDefinitionArn/d' ${{ env.ECS_TASK_DEFINITION }}.json
-        sed -i '/revision/d' ${{ env.ECS_TASK_DEFINITION }}.json
-        sed -i '/status/d' ${{ env.ECS_TASK_DEFINITION }}.json
-        sed -i '/registeredAt/d' ${{ env.ECS_TASK_DEFINITION }}.json
-        sed -i '/registeredBy/d' ${{ env.ECS_TASK_DEFINITION }}.json
-        sed -i 's/"memory": "2048",/"memory": "2048"/g' ${{ env.ECS_TASK_DEFINITION }}.json
 
-        #tag 내용 저장 
-        cat <<< $(jq '.tags = []' ${{ env.ECS_TASK_DEFINITION }}.json) >  ${{ env.ECS_TASK_DEFINITION }}.json
-        KEY=( $(echo $TAGS | jq '.[] | .key'))
-        VALUE=( $(echo $TAGS | jq '.[] | .value'))
-        NEW_KEY=( $(echo ${KEY[@]//\"/}))
-        NEW_VALUE=( $(echo ${VALUE[@]//\"/}))
-        #tag 내용 추가
-        COUNT=$(echo ${#NEW_KEY[@]})
-        for (( c=0; c<$COUNT; c++)); do cat <<< $(jq --arg sk "${NEW_KEY[c]}" --arg v "${NEW_VALUE[c]}" '.tags += [{"key":($sk), "value": $v}]' ${{ env.ECS_TASK_DEFINITION }}.json) > ${{ env.ECS_TASK_DEFINITION }}.json  ;done
-        #새로운 task 등록
-        aws ecs register-task-definition --cli-input-json file://${{ env.ECS_TASK_DEFINITION }}.json
-        # 새로운 revision 번호 저장
-        REVISION=$(aws ecs describe-task-definition --task-definition ${{ env.ECS_TASK_DEFINITION }} --query 'taskDefinition.revision')
-        # ECS 서비스 업데이트
-        aws ecs update-service --service ${{ env.ECS_SERVICE }} --cluster ${{ env.ECS_CLUSTER }} --force-new-deployment --task-definition ${{ env.ECS_TASK_DEFINITION }}:$REVISION
-        # 서비스가 업데이트 될때까지 가다림
-        aws ecs wait services-stable --service ${{ env.ECS_SERVICE }} --cluster ${{ env.ECS_CLUSTER }}
+        aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION > task-def.json
+        jq --arg IMAGE "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG" \
+           '.taskDefinition.containerDefinitions[0].image = $IMAGE' task-def.json > new-task-def.json
+        jq 'del(.taskDefinition.status, .taskDefinition.taskDefinitionArn, .taskDefinition.requiresAttributes, .taskDefinition.compatibilities, .taskDefinition.revision, .taskDefinition.registeredAt, .taskDefinition.registeredBy)' \
+           new-task-def.json > stripped-task-def.json
+
+        NEW_TASK_DEFINITION_ARN=$(aws ecs register-task-definition --cli-input-json file://stripped-task-def.json | jq -r '.taskDefinition.taskDefinitionArn')
+
+        aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $NEW_TASK_DEFINITION_ARN
+
+        aws ecs wait services-stable --cluster $ECS_CLUSTER --services $ECS_SERVICE
