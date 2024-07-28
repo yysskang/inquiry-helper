@@ -106,7 +106,7 @@ const inquirySettings = () => {
                                 <div class="frm-area">
                                     <div class="inp-group">
                                         <label for="type"><em>필수</em> URL 정보</label>
-                                        <input type="text" class="it" id="form_url" value="http://localhost:8000/inquiry/service/{{ request.session.api_key }}/?param1=&param2=&param3=" readonly>
+                                        <input type="text" class="it" id="form_url" value="${location.origin}/inquiry/service/{{ request.session.api_key }}/?param1=&param2=&param3=" readonly>
                                     </div>
                                     <p>URL을 복사하여 원하는 위치에 등록하세요 !</p>
                                     <p>param1, param2, param3 를 통해서 필요한 데이터를 전달하세요 !</p>

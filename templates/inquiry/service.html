@@ -268,10 +268,12 @@ const inquiryCreate = () => {
             alert("문의가 등록되었습니다.");
             location.replace(url)
         },
-        error: (xhr) => {
+        error: (xhr, error) => {
             doubleSubmit("#create-btn");
-			const errorResponse = JSON.parse(xhr.responseText);
-			alert(errorResponse.error);
+			// const errorResponse = JSON.parse(xhr.responseText);
+			// alert(errorResponse.error);
+			console.log(xhr)
+			console.log(error)
         }
     });
 };

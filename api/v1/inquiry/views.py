@@ -31,11 +31,11 @@ class InquiryManagementViewSet(mixins.CreateModelMixin,
                                viewsets.GenericViewSet):
     serializer_class = InquiryManagementSerializer
     queryset = InquiryManagement.objects.all()
-    permission_classes = []
-    authentication_classes = []
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication]
 
     def get_queryset(self):
-        contract_id = self.request.session.get('contract_id', '1')
+        contract_id = self.request.session.get('contract_id')
         if not contract_id:
             return InquiryManagement.objects.none()
         return self.queryset.filter(contract=contract_id)
