@@ -1,4 +1,4 @@
-name: Django CI - Build and Push Docker Image
+name: Django CI - Build, Push Docker Image, and Deploy to ECS
 
 on:
   push:
@@ -8,10 +8,14 @@ on:
 
 env:
   ECR_REPOSITORY: ${{ secrets.ECR }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
 
 permissions:
   id-token: write
-  contents: read   
+  contents: read
 
 jobs:
   build-and-push:
@@ -38,9 +42,16 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        # Build a docker container and
-        # push it to ECR so that it can 
-        docker build --build-arg ENVIRONMENT=${{ secrets.ARG_ENVIRONMENT}} --build-arg ACCESS_KEY=${{ secrets.ARG_AWS_ACCESS_KEY}} --build-arg SECRET_KEY=${{ secrets.ARG_AWS_SECRET_KEY}} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build --build-arg ENVIRONMENT=${{ secrets.ARG_ENVIRONMENT }} --build-arg ACCESS_KEY=${{ secrets.ARG_AWS_ACCESS_KEY }} --build-arg SECRET_KEY=${{ secrets.ARG_AWS_SECRET_KEY }} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-        # test
+
+    - name: Update ecs service
+      run: |
+        aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION > ecs_task_definition.json
+        NEW_IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+        jq --arg newImage "$NEW_IMAGE_URI" '.taskDefinition.containerDefinitions[0].image = $newImage' ecs_task_definition.json > modified_ecs_task_definition.json
+        aws ecs register-task-definition --cli-input-json file://modified_ecs_task_definition.json
+        LATEST_REVISION=$(aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --query 'taskDefinition.revision' --output text)
+        aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition "${ECS_TASK_DEFINITION}:${LATEST_REVISION}"
+        aws ecs wait services-stable --cluster $ECS_CLUSTER --service $ECS_SERVICE
