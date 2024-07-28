@@ -63,9 +63,6 @@ jobs:
       run: |
         aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION }} > task_definition.json
 
-        # CloudWatch 로그 설정 삭제
-        cat <<< "$(jq 'del(.taskDefinition.containerDefinitions[0].logConfiguration)' task_definition.json)" > task_definition.json
-
         cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR }}:${{ github.sha }}"' task_definition.json)" > task_definition.json
 
         TAGS=$(jq '.tags' task_definition.json)
