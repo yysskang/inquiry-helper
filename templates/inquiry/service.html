@@ -103,7 +103,7 @@
 						<div class="frm-area">
 							<div class="inp-group">
 								<label for="attachment"> 첨부파일</label>
-								<input type="file" value="" name="" class="it" id="attachment">
+								<input type="file" value="" name="file" class="it" id="attachment">
 							</div>
 						</div>
                         {% endif %}
@@ -124,6 +124,161 @@ $(document).ready(function() {
 	}
     $('.layer-sel').niceSelect();
 });
+
+
+const inquiryCreate = () => {
+    var form_data = new FormData();
+    const url = window.location.href;
+    const parsedUrl = new URL(url);
+    const serviceId = parsedUrl.pathname.split('/').filter(part => part !== '').pop();
+
+    const param1 = parsedUrl.searchParams.get('param1') || "";
+    const param2 = parsedUrl.searchParams.get('param2') || "";
+    const param3 = parsedUrl.searchParams.get('param3') || "";
+
+    const title = document.getElementById('title');
+    const content = document.getElementById('content');
+    const type = document.getElementById('type');
+    const name = document.getElementById('name');
+    const phone = document.getElementById('phone');
+    const link = document.getElementById('link');
+    const attachment = document.getElementById('attachment');
+    const email = document.getElementById('email');
+    const date_time = document.getElementById('date_time');
+    const address = document.getElementById('address');
+
+    if ([null, undefined, '', 'null', 'None'].includes(title.value)) {
+        alert("제목을 작성해주세요.");
+        return false;
+    }
+
+    if ([null, undefined, '', 'null', 'None'].includes(content.value)) {
+        alert("내용을 작성해주세요.");
+        return false;
+    }
+
+    if ([null, undefined, '', 'null', 'None'].includes(type.value)) {
+        alert("문의 유형을 작성해주세요.");
+        return false;
+    }
+
+    if (![null, undefined, '', 'null', 'None'].includes(name)) {
+        if ([null, undefined, '', 'null', 'None'].includes(name.value)) {
+            alert("이름을 작성해주세요.");
+            return false;
+        }
+    }
+
+    if (![null, undefined, '', 'null', 'None'].includes(phone)) {
+        if ([null, undefined, '', 'null', 'None'].includes(phone.value)) {
+            alert("연락처를 작성해주세요.");
+            return false;
+        } else {
+            form_data.append("phone", phone.value);
+        }
+    } else {
+        form_data.append("phone", phone);
+    }
+
+    if (![null, undefined, '', 'null', 'None'].includes(email)) {
+		const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if ([null, undefined, '', 'null', 'None'].includes(email.value)) {
+            alert("이메일을 작성해주세요.");
+            return false;
+        } else if (!emailPattern.test(email.value)) {
+			  alert("이메일 형식이 아닙니다.");
+			  return false;
+		} else {
+            form_data.append("email", email.value);
+        }
+    } else {
+        form_data.append("email", email);
+    }
+
+	if (new Date(date_time.value) < new Date()) {
+		alert("현재 시간보다 이전 시간은 선택할 수 없습니다.");
+		return false;
+	}
+
+	if (![null, undefined, '', 'null', 'None'].includes(date_time)) {
+		if ([null, undefined, '', 'null', 'None'].includes(date_time.value)) {
+			alert("날짜를 작성해주세요.");
+			return false;
+		} else if (new Date(date_time.value) < new Date()) {
+			alert("현재 시간보다 이전 시간은 선택할 수 없습니다.");
+			return false;
+		} else {
+			form_data.append("date_time", date_time.value);
+		}
+	} else {
+		form_data.append("date_time", date_time);
+	}
+
+
+    if (![null, undefined, '', 'null', 'None'].includes(address)) {
+        form_data.append("address", address.value);
+    } else {
+        form_data.append("address", address);
+    }
+
+	form_data.append("link", link);
+    if (![null, undefined, '', 'null', 'None'].includes(link)) {
+		  const urlPattern = /^(https?:\/\/)((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(\#[-a-z\d_]*)?$/i;
+		  if(!urlPattern.test(link.value) && link.value !== "") {
+			  alert("링크는 https 또는 http 형식을 맞춰주세요.");
+			  return false;
+		  }else {
+			  form_data.append("link", link.value);
+		  }
+    }
+
+    form_data.append("file", "");
+    if (![null, undefined, '', 'null', 'None'].includes(attachment)) {
+        let len = $("input[name=file]").length;
+        for (var x = 0; x < len; x++) {
+            let fileInput = $("input[name=file]")[x];
+            if (fileInput.files[0] != null) {
+                form_data.append("file", fileInput.files[0]);
+            }
+        }
+    }
+
+    form_data.append("title", title.value);
+    form_data.append("content", content.value);
+    form_data.append("type", type.value);
+    form_data.append("name", name.value);
+
+    form_data.append("param1", param1);
+    form_data.append("param2", param2);
+    form_data.append("param3", param3);
+
+    doubleSubmit("#create-btn");
+
+    $.ajax({
+        url: '/api/v1/inquiry/',
+        type: "POST",
+        data: form_data,
+        processData: false,
+        contentType: false,
+        headers: {
+            'apiKey': serviceId
+        },
+        success: function (data) {
+            alert("문의가 등록되었습니다.");
+            location.replace(url)
+        },
+        error: (xhr) => {
+            doubleSubmit("#create-btn");
+            try {
+                const errorResponse = JSON.parse(xhr.responseText);
+                alert(errorResponse.detail);
+            } catch (e) {
+                alert("An error occurred. Please try again.");
+            }
+        }
+    });
+};
+
 </script>
 </body>
 </html>

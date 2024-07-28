@@ -41,21 +41,21 @@
                     <i class="ico i-user-fill"></i>
                     <div>
 						<p>회사명</p>
-						<em id="company">{{contract.company_name}}</em>
+						<em id="company">{{contract.company_name|default:"-"}}</em>
 					</div>
                 </li>
                 <li>
                     <i class="ico"></i>
 					<div>
 						<p>문의 고객 수</p>
-						<em id="inquiry_count">{{inquiry_count}}개</em>
+						<em id="inquiry_count">{{inquiry_count|default:"-"}}개</em>
 					</div>
                 </li>
                 <li>
                     <i class="ico i-survey-fill"></i>
 					<div>
 						<p>안읽은 문의 수</p>
-						<em id="unread_inquiries">{{status_false_count}}개</em>
+						<em id="unread_inquiries">{{status_false_count|default:"-"}}개</em>
 					</div>
                 </li>
                 <li>

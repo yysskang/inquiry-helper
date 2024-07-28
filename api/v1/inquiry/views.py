@@ -20,6 +20,8 @@ from api.v1.inquiry.serializers import InquiryManagementSerializer, InquirySeria
 from apps.contract.models import Contract
 from apps.inquiry.models import InquiryManagement, Inquiry
 from apps.inquiry.service.inquiry import UpdateInquiryService
+from util.fileupload import S3Client
+from util.sqs_client import SQSClient
 
 
 class InquiryManagementViewSet(mixins.CreateModelMixin,
@@ -29,8 +31,8 @@ class InquiryManagementViewSet(mixins.CreateModelMixin,
                                viewsets.GenericViewSet):
     serializer_class = InquiryManagementSerializer
     queryset = InquiryManagement.objects.all()
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [SessionAuthentication]
+    permission_classes = []
+    authentication_classes = []
 
     def get_queryset(self):
         contract_id = self.request.session.get('contract_id', '1')
@@ -100,63 +102,42 @@ class InquiryViewSet(viewsets.GenericViewSet,
             return Response({'detail': 'HTTP_APIKEY not found'}, status=status.HTTP_400_BAD_REQUEST)
         contract = Contract.objects.filter(api_key=api_key).first()
         if contract:
-            request.data['contract'] = contract.id
+            data = request.data.copy()  # Make the QueryDict mutable
+            data['contract'] = contract.id
             user_email = contract.user.email
 
-            file_url = self.handle_file_upload(request.FILES.get('file'), api_key)
+            file_url = self.handle_file_upload(request.FILES.get('file', ""), api_key)
             if file_url:
-                request.data['file'] = file_url.replace(" ", "_")
+                data['file'] = file_url.replace(" ", "_")
 
-            # 객체 저장
-            response = super().create(request, *args, **kwargs)
-            if response.status_code == status.HTTP_201_CREATED and user_email:
-                self.send_message_to_sqs(request.data, user_email)
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            response = Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            # if response.status_code == status.HTTP_201_CREATED and user_email:
+            #     self.send_message_to_sqs(request.data, user_email)
 
             return response
         else:
             return Response({'detail': 'Contract not found'}, status=status.HTTP_400_BAD_REQUEST)
 
-    def handle_file_upload(self, file_obj: Optional[UploadedFile], api_key: str):
-        from datetime import datetime
+    def handle_file_upload(self, file_obj, api_key: str):
+        print("test")
         if file_obj:
-            formatted_date = datetime.now().strftime("%Y%m%d")
-            original_file_name, file_extension = os.path.splitext(file_obj.name)
-            safe_file_name = f"{original_file_name}_{now().strftime('%Y%m%d%H%M%S')}{file_extension}"
-
-            s3_client = boto3.client(
-                's3',
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                region_name=settings.AWS_S3_REGION_NAME
-            )
-            bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-            file_key = f"{api_key}/{formatted_date}/{safe_file_name}"
-            s3_client.upload_fileobj(
-                file_obj,
-                bucket_name,
-                file_key,
-                ExtraArgs={'ContentType': file_obj.content_type, 'ACL': 'private'}
-            )
-            return f"https://{bucket_name}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{file_key}"
+            s3_client = S3Client()
+            file_path = s3_client.file_upload(file_obj, api_key)
+            return file_path
         return None
 
     def send_message_to_sqs(self, inquiry_data, user_email):
         message = {
             'inquiry': inquiry_data,
-            'user_email': "iiomko@naver.com",
+            'user_email': user_email,
         }
 
-        # sqs = boto3.client(
-        #     'sqs',
-        #     region_name=settings.AWS_S3_REGION_NAME,
-        #     aws_access_key_id=settings.SQS_ACCESS_KEY_ID,
-        #     aws_secret_access_key=settings.SQS_SECRET_ACCESS_KEY
-        # )
-        # queue_url = settings.QUEUE_URL
-        # sqs.send_message(
-        #     QueueUrl=queue_url,
-        #     MessageBody=json.dumps(message),
-        # )
+        sqs = SQSClient()
+        sqs.send_message(message)
 
     def list(self, request, *args, **kwargs):
         self.permission_classes = [IsAuthenticated]
