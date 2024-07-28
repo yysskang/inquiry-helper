@@ -46,12 +46,25 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    - name: Update ecs service
+    - name: Fetch the current task definition
+      id: fetch-current-task-def
       run: |
-        aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION > ecs_task_definition.json
+        aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION > original_task_def.json
+
+    - name: Prepare new task definition
+      id: prepare-new-task-def
+      run: |
         NEW_IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-        jq --arg newImage "$NEW_IMAGE_URI" '.taskDefinition.containerDefinitions[0].image = $newImage' ecs_task_definition.json > modified_ecs_task_definition.json
-        aws ecs register-task-definition --cli-input-json file://modified_ecs_task_definition.json
-        LATEST_REVISION=$(aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --query 'taskDefinition.revision' --output text)
-        aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition "${ECS_TASK_DEFINITION}:${LATEST_REVISION}"
+        jq --arg newImage "$NEW_IMAGE_URI" '.taskDefinition.containerDefinitions[0].image = $newImage' original_task_def.json > new_task_def.json
+        jq 'del(.taskDefinition.taskDefinitionArn, .taskDefinition.revision, .taskDefinition.status, .taskDefinition.requiresAttributes, .taskDefinition.registeredAt, .taskDefinition.registeredBy)' new_task_def.json > final_task_def.json
+
+    - name: Register new task definition
+      id: register-new-task-def
+      run: |
+        aws ecs register-task-definition --cli-input-json file://final_task_def.json
+
+    - name: Update ECS service
+      run: |
+        NEW_REVISION=$(aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION --query 'taskDefinition.revision' --output text)
+        aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition "${ECS_TASK_DEFINITION}:${NEW_REVISION}" --force-new-deployment
         aws ecs wait services-stable --cluster $ECS_CLUSTER --service $ECS_SERVICE
