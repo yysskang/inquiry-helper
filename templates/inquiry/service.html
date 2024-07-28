@@ -269,12 +269,8 @@ const inquiryCreate = () => {
         },
         error: (xhr) => {
             doubleSubmit("#create-btn");
-            try {
-                const errorResponse = JSON.parse(xhr.responseText);
-                alert(errorResponse.detail);
-            } catch (e) {
-                alert("An error occurred. Please try again.");
-            }
+			const errorResponse = JSON.parse(xhr.responseText);
+			alert(errorResponse.error);
         }
     });
 };
