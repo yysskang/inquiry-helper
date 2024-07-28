@@ -98,37 +98,39 @@ class InquiryViewSet(viewsets.GenericViewSet,
 
     def create(self, request, *args, **kwargs):
         api_key = request.META.get('HTTP_APIKEY', "")
-        if not api_key:
-            return Response({'detail': 'HTTP_APIKEY not found'}, status=status.HTTP_400_BAD_REQUEST)
-        contract = Contract.objects.filter(api_key=api_key).first()
-        if contract:
-            data = request.data.copy()  # Make the QueryDict mutable
-            data['contract'] = contract.id
-            user_email = contract.user.email
+        try:
+            if not api_key:
+                return Response({'detail': 'HTTP_APIKEY not found'}, status=status.HTTP_400_BAD_REQUEST)
+            contract = Contract.objects.filter(api_key=api_key).first()
+            if contract:
+                data = request.data.copy()  # Make the QueryDict mutable
+                data['contract'] = contract.id
+                user_email = contract.user.email
+                if request.FILES.get('file', ""):
+                    file_url = self.handle_file_upload(request.FILES.get('file'), api_key)
+                    if file_url:
+                        data['file'] = file_url.replace(" ", "_")
 
-            file_url = self.handle_file_upload(request.FILES.get('file', ""), api_key)
-            if file_url:
-                data['file'] = file_url.replace(" ", "_")
+                serializer = self.get_serializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                self.perform_create(serializer)
+                response = Response(serializer.data, status=status.HTTP_201_CREATED)
 
-            serializer = self.get_serializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            response = Response(serializer.data, status=status.HTTP_201_CREATED)
-
-            # if response.status_code == status.HTTP_201_CREATED and user_email:
-            #     self.send_message_to_sqs(request.data, user_email)
-
-            return response
+                # if response.status_code == status.HTTP_201_CREATED and user_email:
+                #     self.send_message_to_sqs(request.data, user_email)
+                return response
+        except Exception as e:
+            print(e)
         else:
             return Response({'detail': 'Contract not found'}, status=status.HTTP_400_BAD_REQUEST)
 
     def handle_file_upload(self, file_obj, api_key: str):
-        print("test")
+        print("test1")
         if file_obj:
             s3_client = S3Client()
             file_path = s3_client.file_upload(file_obj, api_key)
             return file_path
-        return None
+        return ""
 
     def send_message_to_sqs(self, inquiry_data, user_email):
         message = {
