@@ -66,8 +66,6 @@ jobs:
 
         cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR }}:${{ github.sha }}"' task_definition.json)" > task_definition.json
 
-        cat <<< "$(jq '.taskDefinition.containerDefinitions[0].logConfiguration = {"logDriver": "awslogs", "options": {"awslogs-group": "/ecs/${{ secrets.ECS_TASK_DEFINITION }}", "awslogs-region": "${{ secrets.AWS_REGION }}", "awslogs-stream-prefix": "ecs"}}' task_definition.json)" > task_definition.json
-
         TAGS=$(jq '.tags' task_definition.json)
 
         cat <<< $(jq '.taskDefinition' task_definition.json) > task_definition.json
