@@ -261,7 +261,8 @@ const inquiryCreate = () => {
         processData: false,
         contentType: false,
         headers: {
-            'apiKey': serviceId
+            'apiKey': serviceId,
+		    'X-CSRFToken': getCookie('csrftoken')
         },
         success: function (data) {
             alert("문의가 등록되었습니다.");

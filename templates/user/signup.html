@@ -167,6 +167,9 @@ const userCreate = () => {
         'marketing_consent': marketing_consent,
         'personal_info_consent': personal_info_consent
     }),
+    headers: {
+      'X-CSRFToken': getCookie('csrftoken')
+    ,
     success: (response) => {
           alert("회원가입이 완료되었습니다.");
           location.replace("/login/");
