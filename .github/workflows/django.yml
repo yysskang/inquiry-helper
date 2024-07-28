@@ -55,8 +55,10 @@ jobs:
       id: prepare-new-task-def
       run: |
         NEW_IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
-        jq --arg newImage "$NEW_IMAGE_URI" '.taskDefinition.containerDefinitions[0].image = $newImage' original_task_def.json > new_task_def.json
-        jq 'del(.taskDefinition.taskDefinitionArn, .taskDefinition.revision, .taskDefinition.status, .taskDefinition.requiresAttributes, .taskDefinition.registeredAt, .taskDefinition.registeredBy)' new_task_def.json > final_task_def.json
+        # Extract the taskDefinition part and modify the image URI
+        jq --arg newImage "$NEW_IMAGE_URI" '.taskDefinition | .containerDefinitions[0].image = $newImage | .containerDefinitions[0]' original_task_def.json > container_definitions.json
+        # Reconstruct the task definition JSON with proper structure
+        jq --argjson containerDefinitions "$(cat container_definitions.json)" '. | {family: .family, taskRoleArn: .taskRoleArn, executionRoleArn: .executionRoleArn, networkMode: .networkMode, containerDefinitions: [$containerDefinitions], volumes: .volumes, placementConstraints: .placementConstraints, requiresCompatibilities: .requiresCompatibilities, cpu: .cpu, memory: .memory, tags: .tags}' original_task_def.json > final_task_def.json
 
     - name: Register new task definition
       id: register-new-task-def
