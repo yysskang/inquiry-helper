@@ -59,9 +59,15 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    - name: Remove CloudWatch log configuration from task definition
+    - name: Update ECS service with log configuration
       run: |
         aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION }} > task_definition.json
+
+        # CloudWatch 로그 설정 추가
+        cat <<< "$(jq '.taskDefinition.containerDefinitions[0].logConfiguration = {"logDriver": "awslogs", "options": {"awslogs-group": "/fargate/service/test-ecs", "awslogs-create-group": "true", "awslogs-region": "ap-northeast-2", "awslogs-stream-prefix": "ecs"}}' task_definition.json)" > task_definition.json
+
+        # requiresAttributes 추가
+        cat <<< "$(jq '.taskDefinition.requiresAttributes += [{"name": "com.amazonaws.ecs.capability.logging-driver.awslogs"}, {"name": "ecs.capability.execution-role-awslogs"}]' task_definition.json)" > task_definition.json
 
         cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR }}:${{ github.sha }}"' task_definition.json)" > task_definition.json
 
@@ -90,7 +96,7 @@ jobs:
         fi
         aws ecs register-task-definition --cli-input-json file://task_definition.json
         # 새로운 revision 번호 저장
-        REVISION=$(aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION }} --query 'taskDefinition.revision')
+        REVISION=$(aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION }} --query 'taskDefinition.revision' --output text)
         # ECS 서비스 업데이트
         aws ecs update-service --service ${{ secrets.ECS_SERVICE }} --cluster ${{ secrets.ECS_CLUSTER }} --force-new-deployment --task-definition ${{ secrets.ECS_TASK_DEFINITION }}:$REVISION
         aws ecs wait services-stable --service ${{ secrets.ECS_SERVICE }} --cluster ${{ secrets.ECS_CLUSTER }}
