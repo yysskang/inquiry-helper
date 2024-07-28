@@ -156,31 +156,31 @@ const userCreate = () => {
   doubleSubmit("#create-btn");
 
   $.ajax({
-    type: 'POST',
-    url: '/api/v1/signup/',
-    contentType: 'application/json',
-    data: JSON.stringify({
-        'username': username,
-        'password': password,
-        'email': email,
-        'subscription_consent': subscription_consent,
-        'marketing_consent': marketing_consent,
-        'personal_info_consent': personal_info_consent
-    }),
-    headers: {
-      'X-CSRFToken': getCookie('csrftoken')
-    ,
-    success: (response) => {
-          alert("회원가입이 완료되었습니다.");
-          location.replace("/login/");
-    },
-    error: (xhr) => {
-      doubleSubmit("#create-btn");
-      const errorResponse = JSON.parse(xhr.responseText);
-      alert(errorResponse.error);
-    }
+        type: 'POST',
+        url: '/api/v1/signup/',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            'username': username,
+            'password': password,
+            'email': email,
+            'subscription_consent': subscription_consent,
+            'marketing_consent': marketing_consent,
+            'personal_info_consent': personal_info_consent
+        }),
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        success: (response) => {
+              alert("회원가입이 완료되었습니다.");
+              location.replace("/login/");
+        },
+        error: (xhr) => {
+          doubleSubmit("#create-btn");
+          const errorResponse = JSON.parse(xhr.responseText);
+          alert(errorResponse.error);
+        }
   });
-};
+}
 
 </script>
 </body>

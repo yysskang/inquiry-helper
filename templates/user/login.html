@@ -54,8 +54,8 @@ const Login = () => {
             "password": password
         }),
 		headers: {
-		  'X-CSRFToken': getCookie('csrftoken')
-		,
+			'X-CSRFToken': getCookie('csrftoken')
+		},
         success: (data) => {
              alert(data.message);
 			 location.replace("/contract/")
