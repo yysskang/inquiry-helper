@@ -47,7 +47,7 @@ jobs:
     - name: Update ECS service for new version
       run: |
         # Save the task definition to a file
-        aws ecs describe-task-definition --include TAGS --task-definition ${{ secrets.ECS_TASK_DEFINITION }} > task_definition.json
+        aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION }} > task_definition.json
         # Update the image tag in the task definition file
         cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR }}:${{ github.sha }}"' task_definition.json)" > task_definition.json
         # Extract and save the tags
@@ -62,14 +62,20 @@ jobs:
         sed -i '/registeredAt/d' task_definition.json
         sed -i '/registeredBy/d' task_definition.json
         sed -i 's/"memory": "2048",/"memory": "2048"/g' task_definition.json
-        # Restore the tags in the task definition file
-        cat <<< $(jq '.tags = []' task_definition.json) > task_definition.json
-        KEY=( $(echo $TAGS | jq '.[] | .key'))
-        VALUE=( $(echo $TAGS | jq '.[] | .value'))
-        NEW_KEY=( $(echo ${KEY[@]//\"/}))
-        NEW_VALUE=( $(echo ${VALUE[@]//\"/}))
-        COUNT=$(echo ${#NEW_KEY[@]})
-        for (( c=0; c<$COUNT; c++)); do cat <<< $(jq --arg sk "${NEW_KEY[c]}" --arg v "${NEW_VALUE[c]}" '.tags += [{"key":($sk), "value": $v}]' task_definition.json) > task_definition.json  ;done
+
+        # Check if tags exist and add them if they do
+        if [ "$(echo $TAGS | jq '. | length')" -gt 0 ]; then
+          cat <<< $(jq '.tags = []' task_definition.json) > task_definition.json
+          KEY=( $(echo $TAGS | jq '.[] | .key'))
+          VALUE=( $(echo $TAGS | jq '.[] | .value'))
+          NEW_KEY=( $(echo ${KEY[@]//\"/}))
+          NEW_VALUE=( $(echo ${VALUE[@]//\"/}))
+          COUNT=$(echo ${#NEW_KEY[@]})
+          for (( c=0; c<$COUNT; c++)); do 
+            cat <<< $(jq --arg sk "${NEW_KEY[c]}" --arg v "${NEW_VALUE[c]}" '.tags += [{"key":($sk), "value": $v}]' task_definition.json) > task_definition.json  
+          done
+        fi
+
         # Register the new task definition
         aws ecs register-task-definition --cli-input-json file://task_definition.json
         # Get the new revision number
