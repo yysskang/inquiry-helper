@@ -28,9 +28,9 @@
 						</div>
 						<div class="frm-area">
 							<div class="inp-group">
-								<label for="type"><em>필수</em> 카테고리</label>
+								<label for="type"><em>필수</em> 문의 유형</label>
 								<select name="" id="type" class="layer-sel">
-									<option value="">카테고리를 선택해주세요.</option>
+									<option value="">문의 유형을 선택해주세요.</option>
 									{% for data in inquiry.inquiry_types %}
 										<option value="{{data.id}}">{{data.name}}</option>
                                     {% endfor %}

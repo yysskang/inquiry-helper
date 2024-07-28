@@ -152,4 +152,4 @@ QUEUE_URL = secrets.secret_data("queue_url")
 
 AES256_KEY = secrets.secret_data("aes256_key")
 
-
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
