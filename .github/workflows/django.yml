@@ -63,12 +63,6 @@ jobs:
       run: |
         aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION }} > task_definition.json
 
-        # CloudWatch 로그 설정 추가
-        cat <<< "$(jq '.taskDefinition.containerDefinitions[0].logConfiguration = {"logDriver": "awslogs", "options": {"awslogs-group": "/fargate/service/test-ecs", "awslogs-create-group": "true", "awslogs-region": "ap-northeast-2", "awslogs-stream-prefix": "ecs"}}' task_definition.json)" > task_definition.json
-
-        # requiresAttributes 추가
-        cat <<< "$(jq '.taskDefinition.requiresAttributes += [{"name": "com.amazonaws.ecs.capability.logging-driver.awslogs"}, {"name": "ecs.capability.execution-role-awslogs"}]' task_definition.json)" > task_definition.json
-
         cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR }}:${{ github.sha }}"' task_definition.json)" > task_definition.json
 
         TAGS=$(jq '.tags' task_definition.json)
