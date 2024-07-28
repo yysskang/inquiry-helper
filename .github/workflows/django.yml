@@ -59,10 +59,12 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    - name: Update ECS service
+    - name: Remove CloudWatch log configuration from task definition
       run: |
-
         aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION }} > task_definition.json
+
+        # CloudWatch 로그 설정 삭제
+        cat <<< "$(jq 'del(.taskDefinition.containerDefinitions[0].logConfiguration)' task_definition.json)" > task_definition.json
 
         cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR }}:${{ github.sha }}"' task_definition.json)" > task_definition.json
 
@@ -95,4 +97,4 @@ jobs:
         # ECS 서비스 업데이트
         aws ecs update-service --service ${{ secrets.ECS_SERVICE }} --cluster ${{ secrets.ECS_CLUSTER }} --force-new-deployment --task-definition ${{ secrets.ECS_TASK_DEFINITION }}:$REVISION
         aws ecs wait services-stable --service ${{ secrets.ECS_SERVICE }} --cluster ${{ secrets.ECS_CLUSTER }}
-        # 서비스가 업데이트 될때까지 가다림
+        # 서비스가 업데이트 될때까지 기다림
