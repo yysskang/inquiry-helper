@@ -7,10 +7,10 @@ from util.aes256 import AES256
 
 class Inquiry(Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE, related_name='inquiries')
-    name = models.CharField(verbose_name="이름", max_length=100, null=True, blank=True)
-    phone = models.CharField(verbose_name="폰번호", max_length=20, null=True, blank=True)
-    email = models.EmailField(verbose_name="이메일", null=True, blank=True)
-    title = models.CharField(verbose_name="문의 제목", max_length=200)
+    name = models.CharField(verbose_name="이름", max_length=255, null=True, blank=True)
+    phone = models.CharField(verbose_name="폰번호", max_length=255, null=True, blank=True)
+    email = models.EmailField(verbose_name="이메일", max_length=255, null=True, blank=True)
+    title = models.CharField(verbose_name="문의 제목", max_length=100)
     content = models.TextField(verbose_name="문의 내용")
     file = models.URLField(verbose_name="파일 링크", null=True, blank=True)
     type = models.CharField(verbose_name="문의 타입", max_length=100, null=True, blank=True)
