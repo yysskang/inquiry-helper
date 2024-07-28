@@ -11,16 +11,33 @@ env:
 
 permissions:
   id-token: write
-  contents: read   
+  contents: read
 
 jobs:
-  build-and-push:
-    name: Build and Push Docker Image
+  docker-build-test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        file: ./Dockerfile
+        tags: app-test:latest
+        build-args: |
+          ENVIRONMENT=${{ secrets.ARG_ENVIRONMENT }}
+          ACCESS_KEY=${{ secrets.ARG_AWS_ACCESS_KEY }}
+          SECRET_KEY=${{ secrets.ARG_AWS_SECRET_KEY }}
+
+  build-and-push:
+    needs: docker-build-test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -38,21 +55,19 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        # Build a docker container and
-        # push it to ECR so that it can 
         docker build --build-arg ENVIRONMENT=${{ secrets.ARG_ENVIRONMENT}} --build-arg ACCESS_KEY=${{ secrets.ARG_AWS_ACCESS_KEY}} --build-arg SECRET_KEY=${{ secrets.ARG_AWS_SECRET_KEY}} -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    - name: Update ECS service for new version
+    - name: Update ECS service
       run: |
-        # Save the task definition to a file
+
         aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION }} > task_definition.json
-        # Update the image tag in the task definition file
+
         cat <<< "$(jq '.taskDefinition.containerDefinitions[0].image = "${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR }}:${{ github.sha }}"' task_definition.json)" > task_definition.json
-        # Extract and save the tags
+
         TAGS=$(jq '.tags' task_definition.json)
-        # Clean up the task definition file
+
         cat <<< $(jq '.taskDefinition' task_definition.json) > task_definition.json
         cat <<< $(jq 'del(.requiresAttributes)' task_definition.json) > task_definition.json
         cat <<< $(jq 'del(.compatibilities)' task_definition.json) > task_definition.json
@@ -63,7 +78,6 @@ jobs:
         sed -i '/registeredBy/d' task_definition.json
         sed -i 's/"memory": "2048",/"memory": "2048"/g' task_definition.json
 
-        # Check if tags exist and add them if they do
         if [ "$(echo $TAGS | jq '. | length')" -gt 0 ]; then
           cat <<< $(jq '.tags = []' task_definition.json) > task_definition.json
           KEY=( $(echo $TAGS | jq '.[] | .key'))
@@ -75,12 +89,10 @@ jobs:
             cat <<< $(jq --arg sk "${NEW_KEY[c]}" --arg v "${NEW_VALUE[c]}" '.tags += [{"key":($sk), "value": $v}]' task_definition.json) > task_definition.json  
           done
         fi
-
-        # Register the new task definition
         aws ecs register-task-definition --cli-input-json file://task_definition.json
-        # Get the new revision number
+        # 새로운 revision 번호 저장
         REVISION=$(aws ecs describe-task-definition --task-definition ${{ secrets.ECS_TASK_DEFINITION }} --query 'taskDefinition.revision')
-        # Update the ECS service with the new task definition revision
+        # ECS 서비스 업데이트
         aws ecs update-service --service ${{ secrets.ECS_SERVICE }} --cluster ${{ secrets.ECS_CLUSTER }} --force-new-deployment --task-definition ${{ secrets.ECS_TASK_DEFINITION }}:$REVISION
-        # Wait for the service to stabilize
         aws ecs wait services-stable --service ${{ secrets.ECS_SERVICE }} --cluster ${{ secrets.ECS_CLUSTER }}
+        # 서비스가 업데이트 될때까지 가다림
