@@ -62,13 +62,13 @@
 						<div class="frm-area">
 							<div class="inp-group">
 								<label for="title"><em>필수</em> 제목</label>
-								<input type="text" value="{{ inquiry.title }}" class="it" id="title" readonly disabled>
+								<input type="text" value="{{ inquiry.title }}" class="it" id="title" readonly>
 							</div>
 						</div>
 						<div class="frm-area" style="pointer-events: none">
 							<div class="inp-group">
 								<label for="type"><em>필수</em> 문의 유형</label>
-								<select name="" id="type" class="layer-sel" readonly disabled>
+								<select name="" id="type" class="layer-sel" readonly>
 										<option value="{{ inquiry.type }}">{{ inquiry.type }}</option>
 								</select>
 							</div>
@@ -78,7 +78,7 @@
 						<div class="frm-area">
 							<div class="inp-group">
 								<label for="name"><em>필수</em> 이름</label>
-								<input type="text" value="{{ inquiry.get_decrypted_name }}" name="" class="it" id="name" readonly disabled>
+								<input type="text" value="{{ inquiry.get_decrypted_name }}" name="" class="it" id="name" readonly>
 							</div>
 						</div>
                         {% endif %}
@@ -87,7 +87,7 @@
 						<div class="frm-area">
 							<div class="inp-group">
 								<label for="phone"><em>필수</em> 연락처</label>
-								<input type="text" value="{{ inquiry.get_decrypted_phone }}" name="" class="it" id="phone" readonly disabled>
+								<input type="text" value="{{ inquiry.get_decrypted_phone }}" name="" class="it" id="phone" readonly >
 							</div>
 						</div>
                         {% endif %}
@@ -96,7 +96,7 @@
 						<div class="frm-area">
 							<div class="inp-group">
 								<label for="email"><em>필수</em> 이메일</label>
-								<input type="text" value="{{ inquiry.get_decrypted_email }}" name="" class="it" id="email" readonly disabled>
+								<input type="text" value="{{ inquiry.get_decrypted_email }}" name="" class="it" id="email" readonly >
 							</div>
 						</div>
                         {% endif %}
@@ -105,7 +105,7 @@
 						<div class="frm-area">
 							<div class="inp-group">
 								<label for="address"> 주소</label>
-								<input type="text" value="{{ inquiry.get_decrypted_address }}" name="" class="it" id="address" disabled readonly>
+								<input type="text" value="{{ inquiry.get_decrypted_address }}" name="" class="it" id="address" readonly>
 							</div>
 						</div>
                         {% endif %}
@@ -114,7 +114,7 @@
 						<div class="frm-area">
 							<div class="inp-group">
 								<label for="date_time"><em>필수</em> 날짜</label>
-								<input type="text" value="{{ inquiry.date_time }}" name="" class="it" id="date_time" disabled readonly>
+								<input type="text" value="{{ inquiry.date_time }}" name="" class="it" id="date_time" readonly>
 							</div>
 						</div>
                         {% endif %}
@@ -122,7 +122,7 @@
 						<div class="frm-area">
 							<div class="inp-group">
 								<label for="content"><em>필수</em> 문의 내용</label>
-                                <textarea type="text" name="" class="it" id="content" rows="10" disabled readonly>
+								<textarea type="text" name="" class="it" id="content" rows="12" readonly style="overflow-y: auto;">
 									{{ inquiry.content }}
 								</textarea>
 							</div>
@@ -132,7 +132,7 @@
 						<div class="frm-area">
 							<div class="inp-group">
 								<label for="link"> 첨부 링크</label>
-								<input type="text" value="{{ inquiry.link }}" name="" class="it" id="link" readonly disabled>
+								<input type="text" value="{{ inquiry.link }}" name="" class="it" id="link" readonly >
 							</div>
 						</div>
                         {% endif %}
