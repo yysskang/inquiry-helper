@@ -1,12 +1,4 @@
-import json
-import os
-import boto3
-from typing import Optional
-from django.conf import settings
-from django.core.files.uploadedfile import UploadedFile
 from django.db.models import When, Case, IntegerField
-from django.forms import BooleanField
-from django.utils.timezone import now
 from rest_framework import viewsets, status, mixins
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.decorators import action
@@ -14,7 +6,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-
 from api.pagination import StandardPagination
 from api.v1.inquiry.serializers import InquiryManagementSerializer, InquirySerializer
 from apps.contract.models import Contract
@@ -102,7 +93,7 @@ class InquiryViewSet(viewsets.GenericViewSet,
             return Response({'detail': 'HTTP_APIKEY not found'}, status=status.HTTP_400_BAD_REQUEST)
         contract = Contract.objects.filter(api_key=api_key).first()
         if contract:
-            data = request.data.copy()  # Make the QueryDict mutable
+            data = request.data.copy()
             data['contract'] = contract.id
             user_email = contract.user.email
             if request.FILES.get('file', ""):
@@ -115,8 +106,8 @@ class InquiryViewSet(viewsets.GenericViewSet,
             self.perform_create(serializer)
             response = Response(serializer.data, status=status.HTTP_201_CREATED)
 
-            # if response.status_code == status.HTTP_201_CREATED and user_email:
-            #     self.send_message_to_sqs(request.data, user_email)
+            if response.status_code == status.HTTP_201_CREATED and user_email:
+                self.send_message_to_sqs(request.data, user_email)
             return response
 
         else:
@@ -137,7 +128,7 @@ class InquiryViewSet(viewsets.GenericViewSet,
         }
 
         sqs = SQSClient()
-        sqs.send_message(message)
+        sqs.send_message(message, 'send_email')
 
     def list(self, request, *args, **kwargs):
         self.permission_classes = [IsAuthenticated]

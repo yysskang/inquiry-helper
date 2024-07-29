@@ -14,8 +14,9 @@ class SQSClient:
                                 )
         self.queue_url = settings.QUEUE_URL
 
-    def send_message(self, message):
+    def send_message(self, message, group_id):
         self.sqs.send_message(
             QueueUrl=self.queue_url,
             MessageBody=json.dumps(message),
+            MessageGroupId=group_id
         )

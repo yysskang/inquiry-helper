@@ -1,23 +1,120 @@
 <!DOCTYPE html>
-<html lang="ko">
-{% load static %}
+<html lang="en">
 <head>
-<title>CS-Helper</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="format-detection" content="telephone=no, address=no, email=no">
-<link href="{% static 'css/common.css' %}" type="text/css" rel="stylesheet">
-<link href="{% static 'css/admin.css' %}" type="text/css" rel="stylesheet">
-<script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
-<script src="{% static 'js/nice-select/jquery.nice-select.js' %}"></script>
-<script src="{% static 'js/action.js' %}"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>포트폴리오</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f9;
+        color: #333;
+        line-height: 1.6;
+        padding: 20px;
+        margin: 0;
+    }
+    .container {
+        max-width: 800px;
+        margin: auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .accordion {
+        cursor: pointer;
+        padding: 18px;
+        width: 100%;
+        text-align: left;
+        border: none;
+        outline: none;
+        transition: 0.4s;
+        margin-top: 5px;
+        font-size: 16px;
+        color: #444;
+        background: #e7e7e7;
+    }
+    .active, .accordion:hover {
+        background-color: #ccc;
+    }
+    .panel {
+        padding: 0 18px;
+        display: none;
+        background: white;
+        overflow: hidden;
+    }
+    .content {
+        padding: 10px 0px;
+        list-style: none;
+    }
+</style>
 </head>
 <body>
-<div id="wrap">
-	<div id="container">
-	</div>
+
+<div class="container">
+    <h2>강이성</h2>
+
+    <button class="accordion">0. WEB Login</button>
+    <div class="panel">
+        <ul class="content">
+            <li>- <a href="/login/">접속하기</a></li>
+        </ul>
+    </div>
+
+    <button class="accordion">1. 인프라 구성</button>
+    <div class="panel">
+        <ul class="content">
+            <li>- AWS CDK/CloudFormation을 통한 구성 및 관리</li>
+			<li>- S3 FileStorage</li>
+			<li>- ECS Fargate, ECR, ALB</li>
+			<br>
+			<li>- Autoscaling</li>
+            <li>- CPU 80% Scale Up, CPU 20% Scale In</li>
+        </ul>
+    </div>
+
+    <button class="accordion">2. Github/Action</button>
+    <div class="panel">
+        <ul class="content">
+			<li>- <a href="https://github.com/yysskang/inquiry-helper" target="_blank">Github 이동</a></li>
+			<br>
+            <li>- Docker Test Build</li>
+            <li>- ECR Push</li>
+            <li>- ECS Deploy Pipeline 구성</li>
+        </ul>
+    </div>
+
+    <button class="accordion">3. 기술스택</button>
+    <div class="panel">
+        <ul class="content">
+            <li>- AWS ECS Fargate, ECR, ALB</li>
+            <li>- AWS CloudWatch를 통한 로그 연동</li>
+            <li>- AWS Secrets Manager를 통한 데이터 보호</li>
+            <li>- AWS SQS, Lambda, Amazon EventBridge를 통한 비동기 및 스케줄링 프로세스 처리</li>
+            <li>- AWS S3 File Storage</li>
+			<br>
+            <li>- Python 3.10, Django 4.2.4, DRF API, MySQL, Docker</li>
+            <li>- JavaScript, Jquery, Django Template</li>
+        </ul>
+    </div>
 </div>
+
 <script>
+    var acc = document.getElementsByClassName("accordion");
+    var i;
+
+    for (i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            var panel = this.nextElementSibling;
+            if (panel.style.display === "block") {
+                panel.style.display = "none";
+            } else {
+                panel.style.display = "block";
+            }
+        });
+    }
 </script>
+
 </body>
 </html>
