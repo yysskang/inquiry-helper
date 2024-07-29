@@ -114,7 +114,6 @@ class InquiryViewSet(viewsets.GenericViewSet,
             return Response({'detail': 'Contract not found'}, status=status.HTTP_400_BAD_REQUEST)
 
     def handle_file_upload(self, file_obj, api_key: str):
-        print("test1")
         if file_obj:
             s3_client = S3Client()
             file_path = s3_client.file_upload(file_obj, api_key)

@@ -24,6 +24,23 @@ class Inquiry(Model):
 
     objects = InquiryQuerySet.as_manager()
 
+    def decrypt_data(self, encrypted_data):
+        aes256 = AES256()
+        return aes256.decrypt_ase(encrypted_data)
+
+    def get_decrypted_name(self):
+        return self.decrypt_data(self.name) if self.name else ""
+
+    def get_decrypted_phone(self):
+        return self.decrypt_data(self.phone) if self.phone else ""
+
+    def get_decrypted_email(self):
+        return self.decrypt_data(self.email) if self.email else ""
+
+    def get_decrypted_address(self):
+        return self.decrypt_data(self.address) if self.address else ""
+
+
     def save(self, *args, **kwargs):
         aes256 = AES256()
         if self.name:

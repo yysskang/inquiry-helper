@@ -4,6 +4,7 @@ from django.views.generic import TemplateView
 from apps.contract.models import Contract
 from apps.inquiry.models import InquiryManagement as InquiryManagementModel, Inquiry
 from config.decorators import is_login
+from util.aes256 import AES256
 
 
 @method_decorator(is_login, name='dispatch')
@@ -33,7 +34,6 @@ class InquiryDetail(TemplateView):
         Inquiry.objects.with_contract(contract_id, inquiry_id).update(status=True)
         inquiry = get_object_or_404(Inquiry, pk=inquiry_id)
         context['inquiry'] = inquiry
-
         return context
 
 

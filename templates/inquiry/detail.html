@@ -11,6 +11,26 @@
 <script src="{% static 'js/jquery-1.12.4.min.js' %}"></script>
 <script src="{% static 'js/nice-select/jquery.nice-select.js' %}"></script>
 <script src="{% static 'js/action.js' %}"></script>
+<style>
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        background-color: #f1f1f1;
+        border: 1px solid #ccc;
+        padding: 5px 10px;
+        margin: 5px;
+        border-radius: 3px;
+    }
+    .tag .close {
+        margin-left: 10px;
+        color: red;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .tag .close:hover {
+        color: darkred;
+    }
+</style>
 </head>
 <body>
 <div id="wrap">
@@ -33,10 +53,111 @@
         </div>
         <button type="button" class="bt-menu"><span class="skip">메뉴</span></button>
     </header>
-	<div id="container">
+    <div id="container">
+		<div class="group-write">
+			<h4>상세내용</h4>
+				<fieldset>
+					<legend>문의 내용</legend>
+					<div class="forms-write-wrap">
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="title"><em>필수</em> 제목</label>
+								<input type="text" value="{{ inquiry.title }}" class="it" id="title" readonly disabled>
+							</div>
+						</div>
+						<div class="frm-area" style="pointer-events: none">
+							<div class="inp-group">
+								<label for="type"><em>필수</em> 문의 유형</label>
+								<select name="" id="type" class="layer-sel" readonly disabled>
+										<option value="{{ inquiry.type }}">{{ inquiry.type }}</option>
+								</select>
+							</div>
+						</div>
+
+						{% if inquiry.name %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="name"><em>필수</em> 이름</label>
+								<input type="text" value="{{ inquiry.get_decrypted_name }}" name="" class="it" id="name" readonly disabled>
+							</div>
+						</div>
+                        {% endif %}
+
+                        {% if inquiry.phone %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="phone"><em>필수</em> 연락처</label>
+								<input type="text" value="{{ inquiry.get_decrypted_phone }}" name="" class="it" id="phone" readonly disabled>
+							</div>
+						</div>
+                        {% endif %}
+
+                        {% if inquiry.email %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="email"><em>필수</em> 이메일</label>
+								<input type="text" value="{{ inquiry.get_decrypted_email }}" name="" class="it" id="email" readonly disabled>
+							</div>
+						</div>
+                        {% endif %}
+
+                        {% if inquiry.address %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="address"> 주소</label>
+								<input type="text" value="{{ inquiry.get_decrypted_address }}" name="" class="it" id="address" disabled readonly>
+							</div>
+						</div>
+                        {% endif %}
+
+                        {% if inquiry.date_time %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="date_time"><em>필수</em> 날짜</label>
+								<input type="text" value="{{ inquiry.date_time }}" name="" class="it" id="date_time" disabled readonly>
+							</div>
+						</div>
+                        {% endif %}
+
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="content"><em>필수</em> 문의 내용</label>
+                                <textarea type="text" name="" class="it" id="content" rows="10" disabled readonly>
+									{{ inquiry.content }}
+								</textarea>
+							</div>
+						</div>
+
+                        {% if inquiry.link %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="link"> 첨부 링크</label>
+								<input type="text" value="{{ inquiry.link }}" name="" class="it" id="link" readonly disabled>
+							</div>
+						</div>
+                        {% endif %}
+
+                        {% if inquiry.attachment %}
+						<div class="frm-area">
+							<div class="inp-group">
+								<label for="attachment"> 첨부파일</label>
+								<input type="file" value="{{ inquiry.attachment }}" name="file" class="it" id="attachment">
+							</div>
+						</div>
+                        {% endif %}
+					</div>
+					<div class="bt-group">
+						<button id="create-btn" onclick="location.href='/inquiry/list/'" class="st-fill"><span>목록가기</span> <i class="ico"></i></button>
+					</div>
+				</fieldset>
+		</div>
 	</div>
 </div>
 <script>
+$(document).ready(function() {
+	$('.layer-sel').niceSelect();
+});
+
 </script>
 </body>
 </html>

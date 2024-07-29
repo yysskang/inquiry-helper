@@ -79,16 +79,69 @@
                                 <th scope="col" class="detail">상세보기</th>
                             </tr>
                         </thead>
-                        <tbody id="group_list">
+                        <tbody id="inquiry_list">
 
                         </tbody>
                     </table>
+                </div>
+                <div class="bt-group" id="">
+                    <button type="button" class="st-ico" id="dashboard"><span>통계보기</span> <i class="ico i-add"></i></button>
                 </div>
             </div>
 		</div>
 	</div>
 </div>
 <script>
+const inquiryList = () => {
+    $.ajax({
+        type: 'GET',
+        url: '/api/v1/inquiry/',
+        contentType: 'application/json',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        success: (response) => {
+            const { results, count } = response;
+            const inquiryList = $('#inquiry_list');
+            inquiryList.empty();
+
+            if (count === 0) {
+                inquiryList.append(`
+                    <tr>
+                        <td colspan="4">등록된 문의 게시글이 없습니다.</td>
+                    </tr>
+                `);
+            } else {
+                results.forEach((inquiry) => {
+                    const statusDisplay = inquiry.status ? '읽음' : '미확인';
+                    inquiryList.append(`
+                        <tr>
+                            <td class="name">${inquiry.title}</td>
+                            <td class="date">${inquiry.created_at.slice(0, 19).replace('T', ' ')}</td>
+                            <td class="form">${statusDisplay}</td>
+                            <td class="detail">
+                                <a href="/inquiry/detail/${inquiry.id}/">
+                                    <span class="skip">상세보기</span>
+                                    <i class="ico i-answer-view"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    `);
+                });
+            }
+        },
+        error: (xhr) => {
+            const errorResponse = JSON.parse(xhr.responseText);
+            alert(errorResponse.error);
+        }
+    });
+};
+
+// Optionally, call inquiryList on page load or on a specific event
+$(document).ready(function() {
+    inquiryList();
+});
+
 </script>
 </body>
 </html>
