@@ -3,7 +3,7 @@
   - VPC, 권한, S3 구성
   - ECS Fargate 구성을 통해 Container Orchestration의 용이성과 서버 관리에 대한 리소스 감소
   - ECR 구성
-  - 헬스체크, 확장성, 가용성를 고려하여 ALB 구성
+  - 헬스체크, 확장성, 가용성을 고려하여 ALB 구성
   - Autoscaling 구성
   - CPU 80% Scale Up, CPU 20% Scale In
 
