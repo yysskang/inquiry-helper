@@ -27,7 +27,7 @@
 - **Docker**
 - **JavaScript**, **Jquery**, **Django Template**
 
-- **GenericAPIView**: mixins 클래스를 활용하여 특정 기능만을 구성할 때 사용합니다.
+- **GenericAPIView**: mixins 클래스를 활용하여 특정 기능을 구성할 때 사용합니다.
 - **ModelViewSet**: 간단한 CRUD 구성이 필요할 때 사용합니다.
 - **APIView**: 복잡한 비즈니스 로직이나 외부 서비스와의 통합이 필요한 구성이 필요할 때 사용합니다.
 - **Routers 및 Serializers** 활용
