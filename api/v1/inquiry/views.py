@@ -7,6 +7,7 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from api.pagination import StandardPagination
+from api.tasks import send_inquiry_email
 from api.v1.inquiry.serializers import InquiryManagementSerializer, InquirySerializer
 from apps.contract.models import Contract
 from apps.inquiry.models import InquiryManagement, Inquiry
@@ -121,13 +122,15 @@ class InquiryViewSet(viewsets.GenericViewSet,
         return ""
 
     def send_message_to_sqs(self, inquiry_data, user_email):
-        message = {
-            'inquiry': inquiry_data,
-            'user_email': user_email,
-        }
-
-        sqs = SQSClient()
-        sqs.send_message(message, 'send_email')
+        # message = {
+        #     'inquiry': inquiry_data,
+        #     'user_email': user_email,
+        # }
+        print("test2222")
+        print(user_email)
+        print(inquiry_data)
+        test = send_inquiry_email(inquiry_data, user_email)
+        print(test)
 
     def list(self, request, *args, **kwargs):
         self.permission_classes = [IsAuthenticated]

@@ -18,3 +18,10 @@ DATABASES = {
     }
 }
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = secrets.secret_data("email_host")
+EMAIL_USE_TLS = True
+EMAIL_PORT = secrets.secret_data("email_port")
+EMAIL_HOST_USER = secrets.secret_data("email_user")
+EMAIL_HOST_PASSWORD = secrets.secret_data("email_password")
+

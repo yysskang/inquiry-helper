@@ -13,3 +13,4 @@ drf_yasg==1.21.7
 pytest
 cryptography
 boto3
+premailer

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문의 도착</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f6f8fb;
+            color: #333;
+        }
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #e0e4e8;
+        }
+        .header {
+            background-color: #4f93e6;
+            color: white;
+            text-align: center;
+            padding: 25px 20px;
+        }
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+            font-weight: bold;
+        }
+        .content {
+            padding: 30px;
+        }
+        .content h2 {
+            font-size: 18px;
+            color: #4f93e6;
+            margin-bottom: 16px;
+        }
+        .content p {
+            margin: 8px 0;
+            font-size: 14px;
+            color: #555;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .info-table th, .info-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e4e8;
+            text-align: left;
+        }
+        .info-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #555;
+        }
+        .info-table td {
+            background-color: #ffffff;
+            color: #333;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: #f9fafb;
+            color: #777;
+            font-size: 13px;
+        }
+        .footer a {
+            color: #4f93e6;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>문의 도착</h1>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <h2>문의 상세 정보</h2>
+            {% if inquiry_data.title %}
+                <p><strong>제목:</strong> {{ inquiry_data.title }}</p>
+            {% endif %}
+            {% if inquiry_data.type %}
+                <p><strong>문의 유형:</strong> {{ inquiry_data.type }}</p>
+            {% endif %}
+            {% if inquiry_data.content %}
+                <p><strong>내용:</strong> {{ inquiry_data.content|linebreaks }}</p>
+            {% endif %}
+
+            <h2>문의자 정보</h2>
+            <table class="info-table">
+                {% if inquiry_data.name %}
+                <tr>
+                    <th>이름</th>
+                    <td>{{ inquiry_data.name }}</td>
+                </tr>
+                {% endif %}
+                {% if inquiry_data.email %}
+                <tr>
+                    <th>이메일</th>
+                    <td>{{ inquiry_data.email }}</td>
+                </tr>
+                {% endif %}
+                {% if inquiry_data.phone %}
+                <tr>
+                    <th>연락처</th>
+                    <td>{{ inquiry_data.phone }}</td>
+                </tr>
+                {% endif %}
+                {% if inquiry_data.date_time %}
+                <tr>
+                    <th>날짜/시간</th>
+                    <td>{{ inquiry_data.date_time }}</td>
+                </tr>
+                {% endif %}
+                {% if inquiry_data.address %}
+                <tr>
+                    <th>주소</th>
+                    <td>{{ inquiry_data.address }}</td>
+                </tr>
+                {% endif %}
+                {% if inquiry_data.file %}
+                <tr>
+                    <th>파일 링크</th>
+                    <td>{{ inquiry_data.file }}</td>
+                </tr>
+                {% endif %}
+                {% if inquiry_data.link %}
+                <tr>
+                    <th>링크</th>
+                    <td>{{ inquiry_data.link }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <th>추가 내용</th>
+                    <td>
+                        {{ inquiry_data.param1|default:'' }}<br>
+                        {{ inquiry_data.param2|default:'' }}<br>
+                        {{ inquiry_data.param3|default:'' }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>이 메일은 자동 발신된 메일입니다. 문의 사항은 <a href="mailto:form.master.prod@gmail.com">form.master.prod@gmail.com</a>으로 연락해주세요.</p>
+        </div>
+    </div>
+</body>
+</html>
