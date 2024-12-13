@@ -4,7 +4,6 @@ from django.views.generic import TemplateView
 from apps.contract.models import Contract
 from apps.inquiry.models import InquiryManagement as InquiryManagementModel, Inquiry
 from config.decorators import is_login
-from util.aes256 import AES256
 
 
 @method_decorator(is_login, name='dispatch')

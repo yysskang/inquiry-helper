@@ -195,17 +195,9 @@ const inquiryCreate = () => {
         form_data.append("email", email);
     }
 
-	if (new Date(date_time.value) < new Date()) {
-		alert("현재 시간보다 이전 시간은 선택할 수 없습니다.");
-		return false;
-	}
-
 	if (![null, undefined, '', 'null', 'None'].includes(date_time)) {
 		if ([null, undefined, '', 'null', 'None'].includes(date_time.value)) {
 			alert("날짜를 작성해주세요.");
-			return false;
-		} else if (new Date(date_time.value) < new Date()) {
-			alert("현재 시간보다 이전 시간은 선택할 수 없습니다.");
 			return false;
 		} else {
 			form_data.append("date_time", date_time.value);
@@ -246,6 +238,7 @@ const inquiryCreate = () => {
     form_data.append("title", title.value);
     form_data.append("content", content.value);
     form_data.append("type", type.options[type.selectedIndex].text);
+    form_data.append("type_code", type.options[type.selectedIndex].value);
     form_data.append("name", name.value);
 
     form_data.append("param1", param1);

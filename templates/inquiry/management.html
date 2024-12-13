@@ -131,7 +131,7 @@ const inquirySettings = () => {
                                     ${type_html}
                                 </div>
                                 <div class="bt-group">
-                                    <button id="create-btn" onclick="inquiryTypesUpdate()" class="st-fill"><span>적용하기</span> <i class="ico"></i></button>
+                                    <button id="t-create-btn" onclick="inquiryTypesUpdate()" class="st-fill"><span>적용하기</span> <i class="ico"></i></button>
                                 </div>
                             </div>
                         </fieldset>
@@ -151,7 +151,7 @@ const inquirySettings = () => {
                                 <div class="frm-area">
                                     <div class="inp-group">
                                         <label for="time_placeholder"> 날짜 수집 목적</label><input type="text" name="" value="${data.time_placeholder == null ? '' : data.time_placeholder}"
-                                        class="it" id="time_placeholder" placeholder="라벨을 적어주세요. ex) 예약 날짜">
+                                        class="it" id="time_placeholder" placeholder="라벨을 적어주세요. ex) 예약 날짜, 발생 일자">
                                     </div>
                                 </div>
                                 <div class="bt-group">
@@ -230,8 +230,8 @@ const inquiryUpdate = () => {
             "address": address
         }),
         success: (response) => {
-            alert("설정이 완료되었습니다.");
             doubleSubmit("#create-btn");
+            alert("설정이 완료되었습니다.");
         },
         error: (xhr) => {
             doubleSubmit("#create-btn");
@@ -285,13 +285,13 @@ function addTag(value) {
 const inquiryTypesUpdate = () => {
     const tags = document.querySelectorAll('#tag-container .tag');
     if (tags.length === 0) {
-        alert('등록된 문의 타입이 없습니다.');
+        alert('등록된 문의 타입이 없습니다.\n문의 타입을 등록해주세요.');
         return;
     }
     const inquiryTypes = [];
     tags.forEach(tag => {
         const span = tag.querySelector('span');
-        const dataId = span.getAttribute('data-id'); // DB에서 가져온 요소
+        const dataId = span.getAttribute('data-id');
         const name = span.textContent.trim();
 
         if (dataId) {
@@ -310,7 +310,7 @@ const inquiryTypesUpdate = () => {
         inquiry_types: inquiryTypes
     };
     const idx = $("#myInquiryIdx").val();
-    doubleSubmit("#create-btn");
+    doubleSubmit("#t-create-btn");
     $.ajax({
         type: 'PUT',
         url: `/api/v1/inquiry_management/${idx}/update_inquiry_types/`,
@@ -321,10 +321,10 @@ const inquiryTypesUpdate = () => {
         data: JSON.stringify(result),
         success: (response) => {
             alert("설정이 완료되었습니다.");
-            doubleSubmit("#create-btn");
+            location.reload()
         },
         error: (xhr) => {
-            doubleSubmit("#create-btn");
+            doubleSubmit("#t-create-btn");
             const errorResponse = JSON.parse(xhr.responseText);
             alert(errorResponse.error);
         }

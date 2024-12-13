@@ -147,7 +147,7 @@ AWS_ACCESS_KEY_ID = secrets.secret_data("s3_access_key")
 AWS_SECRET_ACCESS_KEY = secrets.secret_data("s3_secret_key")
 AWS_STORAGE_BUCKET_NAME = secrets.secret_data("s3_bucket_name")
 AWS_S3_REGION_NAME = "ap-northeast-2"
-
+print(AWS_STORAGE_BUCKET_NAME)
 SQS_ACCESS_KEY_ID = secrets.secret_data("sqs_aws_access_key")
 SQS_SECRET_ACCESS_KEY = secrets.secret_data("sqs_aws_secret_key")
 QUEUE_URL = secrets.secret_data("queue_url")

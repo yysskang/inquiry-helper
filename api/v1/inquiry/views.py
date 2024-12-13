@@ -100,15 +100,15 @@ class InquiryViewSet(viewsets.GenericViewSet,
             if request.FILES.get('file', ""):
                 file_url = self.handle_file_upload(request.FILES.get('file'), api_key)
                 if file_url:
+                    print(file_url)
                     data['file'] = file_url.replace(" ", "_")
 
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)
             response = Response(serializer.data, status=status.HTTP_201_CREATED)
-
             if response.status_code == status.HTTP_201_CREATED and user_email:
-                self.send_message_to_sqs(request.data, user_email)
+                self.send_message_to_sqs(data, user_email)
             return response
 
         else:
